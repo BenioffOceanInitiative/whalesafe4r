@@ -1,0 +1,94 @@
+---
+title: "Introduction"
+author: "Ben Best"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = F,
+  message = F
+)
+```
+
+## Load Santa Barbara AIS Ship Data
+
+And get top ten vessels with data.
+
+```{r}
+library(tidyverse)
+# devtools::install_local()
+library(shipr) # devtools::load_all()
+
+data(sbais)
+
+sbais %>% 
+  group_by(name) %>% 
+  summarize(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  head(10)
+```
+
+
+## Analyze Single Ship Data
+
+```{r}
+library(sf)
+library(leaflet)
+library(units)
+library(lubridate)
+
+pts <- sbais %>%
+  st_as_sf(coords = c("lon", "lat"), crs=4326) %>% 
+  arrange(name, datetime)
+
+# limit to one vessel
+p <- pts %>%
+  filter(name == "NAUTILUS") %>% 
+  arrange(datetime) %>% 
+  # filter to only one point per minute to reduce weird speeds
+  filter(!duplicated(round_date(datetime, unit="minute"))) %>% 
+  mutate(
+    seg      = map2(lag(geometry), geometry, create_segment),
+    seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+    seg_km   = map_dbl(seg, get_length_km),
+    seg_kmhr = seg_km / (seg_mins / 60), 
+    seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+    seg_num  = cumsum(seg_new),
+    row_num  = row_number())
+
+# setup lines
+lns <- p %>% 
+  filter(seg_new == 0) %>% 
+  mutate(
+    seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>% 
+  st_set_geometry("seg_geom")
+
+# look at line segments
+hist(lns$seg_kmhr)
+summary(lns$seg_kmhr)
+which(lns$seg_kmhr>100)
+```
+
+## Map Single Ship Line Segments with Speed
+
+```{r}
+pal <- colorNumeric("Spectral", lns$seg_kmhr, reverse=T)
+
+leaflet(lns) %>% 
+  addProviderTiles(providers$Esri.OceanBasemap) %>% 
+  addPolylines(
+    color = ~pal(seg_kmhr),
+    label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, datetime)) %>% 
+  addLegend(
+    pal = pal, values = ~seg_kmhr, title = "Speed (km/hr)") # , labFormat = labelFormat())
+```

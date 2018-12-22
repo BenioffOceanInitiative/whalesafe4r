@@ -1,0 +1,14 @@
+Package: shipr
+Title: ship report card functions
+Version: 0.0.0.9000
+Authors@R: person("Ben", "Best", email = "ben@ecoquants.com", role = c("aut", "cre"))
+Description: Builds report cards for ships.
+Depends: R (>= 3.5.1)
+License: MIT license
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1

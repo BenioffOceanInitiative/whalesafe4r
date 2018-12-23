@@ -4,7 +4,7 @@
 \alias{ship_segments}
 \title{Create line segments with speed for specific ship from AIS data}
 \usage{
-ship_segments(data, ship_name, dir_data)
+ship_segments(data, ship_name, dir_data = "data")
 }
 \arguments{
 \item{data}{AIS data.frame}

@@ -40,7 +40,6 @@ usethis::use_package("stringr")
 usethis::use_package("units")
 ```
 
-
 ### documentation
 
 ```r

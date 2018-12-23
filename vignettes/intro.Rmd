@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "Basic Ship Reporting"
 author: "Ben Best"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -17,8 +17,7 @@ knitr::opts_chunk$set(
   comment = "#>",
   warning = F,
   message = F,
-  eval = T
-)
+  eval = T)
 ```
 
 ## Load Santa Barbara AIS Ship Data
@@ -47,7 +46,9 @@ sbais %>%
 
 ```{r}
 ship_name <- "NAUTILUS"
-segs <- ship_segments(sbais, ship_name)
+
+dir_cache <- "~/tmp/shipr"
+segs <- ship_segments(sbais, ship_name, dir_data = dir_cache)
 
 # look at ship segments
 hist(segs$seg_kmhr)
@@ -64,11 +65,13 @@ map_ship_segments(segs)
 ## Breakdown Ship Speeds based on Compliance Threshold
 
 ```{r}
-lims <- ship_limits(segs, limit_knots = 10, ship_name)
+lims <- ship_limits(segs, limit_knots = 10, ship_name, dir_data = dir_cache)
 
 # show limits table without geometry
 lims %>% 
-  st_set_geometry(NULL)
+  sf::st_set_geometry(NULL)
+
+map_ship_limits(lims)
 ```
 
 ## Gauge
@@ -86,6 +89,19 @@ ship_gauge(pct_dist_ok)
 ```{r}
 ship_box(pct_dist_ok)
 ```
+
+This Value Box doesn't render outside flexdashboard environment.
+
+## Ship Report Card Directory and Cards
+
+Here's an example of using these functions together to create:
+
+* code: [ecoquants/ship-cards](https://github.com/ecoquants/ship-cards)
+* site: [Ship Report Cards](http://ecoquants.com/ship-cards/) 
+  with color coding based on: [0 - bad - 40 - meh - 80 - bad - 100] % within speed limit
+    * good: [Ship Report Card: CHARLES DREW](http://ecoquants.com/ship-cards/ship/CHARLES%20DREW.html)
+    * meh: [Ship Report Card: CARNIVAL INSPIRATION](http://ecoquants.com/ship-cards/ship/CARNIVAL%20INSPIRATION.html)
+    * bad: [Ship Report Card: RUBEN LASKER](http://ecoquants.com/ship-cards/ship/RUBEN%20LASKER.html)
 
 ## TODO: Next
 

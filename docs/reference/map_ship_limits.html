@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create segment from 2 points — create_segment • shipr</title>
+<title>Interactive map of ship limits — map_ship_limits • shipr</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Create segment from 2 points — create_segment" />
+<meta property="og:title" content="Interactive map of ship limits — map_ship_limits" />
 
-<meta property="og:description" content="Create segment from 2 points" />
+<meta property="og:description" content="Interactive map of ship limits" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -106,39 +106,32 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Create segment from 2 points</h1>
+    <h1>Interactive map of ship limits</h1>
     
-    <div class="hidden name"><code>create_segment.Rd</code></div>
+    <div class="hidden name"><code>map_ship_limits.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Create segment from 2 points</p>
+    <p>Interactive map of ship limits</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>create_segment</span>(<span class='no'>p1</span>, <span class='no'>p2</span>, <span class='kw'>crs</span> <span class='kw'>=</span> <span class='fl'>4326</span>)</pre>
+    <pre class="usage"><span class='fu'>map_ship_limits</span>(<span class='no'>lims</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>p1</th>
-      <td><p>sf first point</p></td>
-    </tr>
-    <tr>
-      <th>p2</th>
-      <td><p>sf second point</p></td>
-    </tr>
-    <tr>
-      <th>crs</th>
-      <td><p>coordinate reference system (default 4326)</p></td>
+      <th>lims</th>
+      <td><p>data.frame with sf line segments and speed (km/hr) per segment,
+as returned by <code>ship_limits</code></p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>linestring</p>
+    <p>leaflet map of ship segments, color coded by speed (km/hr)</p>
     
 
   </div>

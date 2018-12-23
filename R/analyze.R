@@ -58,6 +58,7 @@ ship_segments <- function(data, ship_name, dir_data="data"){
     lns <- read_rds(lns_rds)
     return(lns)
   }
+  if (!dir.exists(dirname(lns_rds))) dir.create(dirname(lns_rds), recursive=T)
 
   pts <- data %>%
     # filter to single vessel
@@ -116,6 +117,7 @@ ship_limits <- function(segs, limit_knots = 10, ship_name, dir_data="data"){
     lims <- read_rds(lims_rds)
     return(lims)
   }
+  if (!dir.exists(dirname(lims_rds))) dir.create(dirname(lims_rds), recursive=T)
 
   limit_kph   <- limit_knots * 1.852
 

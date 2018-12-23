@@ -2,7 +2,15 @@
 #'
 #' @param txt path to text file
 #'
-#' @return data.frame of data
+#' @return data.frame of data. TODO: describe all the rules and expectations
+#'   based on AIS_SBARC_*.txt with possibility for alternate file formats and
+#'   filtering for class A position reports, ie Message ID 1,2,3 per
+#'   https://www.navcen.uscg.gov/?pageName=AISMessages. See use of this function in
+#'   https://github.com/mvisalli/shipr/blob/master/data-raw/sbais.R.
+#' @importFrom readr read_delim cols col_character col_double
+#' @importFrom stringr str_replace
+#' @importFrom dplyr filter mutate arrange select
+#' @importFrom lubridate as_datetime
 #' @export
 #'
 #' @examples
@@ -15,6 +23,7 @@ read_ais_txt <- function(txt){
     "AIS_SBARC_([0-9]{2})([0-9]{2})([0-9]{2})-[0-9]+\\.txt",
     "20\\1-\\2-\\3")
 
+  # col specs ----
   #spec_delim("data-raw/2018-06-01_2018-06-07/AIS_SBARC_180607-23.txt", ";", col_names = F)
   ais_col_types <- cols(
     X1 = col_character(),
@@ -44,6 +53,7 @@ read_ais_txt <- function(txt){
     X25 = col_double()
   )
 
+  # read txt ----
   d <- read_delim(txt, ";", col_names = sprintf("X%d", 1:25), col_types = ais_col_types) %>%
     # filter for class A position reports, ie Message ID 1,2,3 per https://www.navcen.uscg.gov/?pageName=AISMessages
     filter(X6 %in% c(1,2,3)) %>%

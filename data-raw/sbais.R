@@ -1,19 +1,13 @@
-library(dplyr, warn.conflicts = FALSE)
-library(purrr)
-library(tidyr)
-library(readr)
-library(stringr)
-library(lubridate)
-library(usethis)
-devtools::load_all()
+#devtools::load_all()
 
-sbais <- tibble(
+sbais <- tibble::tibble(
   txt = list.files("data-raw", "^AIS_.*\\.txt$", full.names = T, recursive = T)) %>%
-  mutate(
-    data = map(txt, read_ais_txt)) %>%
-  select(-txt) %>%
-  unnest(data) %>%
-  arrange(datetime, name)
+  dplyr::mutate(
+    # note use of custom read_ais_txt() function applied to each *.txt file
+    data = purrr::map(txt, bbnj::read_ais_txt)) %>%
+  dplyr::select(-txt) %>%
+  tidyr::unnest(data) %>%
+  dplyr::arrange(datetime, name)
 
-write_csv(sbais, "data-raw/sbais.csv")
+readr::write_csv(sbais, "data-raw/sbais.csv")
 usethis::use_data(sbais, overwrite = TRUE)

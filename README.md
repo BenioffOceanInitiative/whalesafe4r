@@ -26,9 +26,25 @@ usethis::use_data(sbais, overwrite = TRUE)
 devtools::use_vignette("intro")
 ```
 
+### packages
+
+```r
+usethis::use_package("dplyr")
+usethis::use_package("leaflet")
+usethis::use_package("lubridate")
+usethis::use_package("purrr")
+usethis::use_package("reader")
+usethis::use_package("readr")
+usethis::use_package("sf")
+usethis::use_package("stringr")
+usethis::use_package("units")
+```
+
+
 ### documentation
 
 ```r
+devtools::document()
 pkgdown::build_site()
 ```
 

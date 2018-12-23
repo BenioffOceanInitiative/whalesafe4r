@@ -22,7 +22,10 @@ knitr::opts_chunk$set(
 
 ## Load Santa Barbara AIS Ship Data
 
-And get top ten vessels with data.
+Load dataset `sbais` which got ingested from raw data at [`data-raw/2018-06-01_2018-06-07`](https://github.com/mvisalli/shipr/tree/master/data-raw/2018-06-01_2018-06-07) by [`data-raw/sbais.R`](https://github.com/mvisalli/shipr/blob/master/data-raw/sbais.R) using 
+[`read_ais_txt()`](https://mvisalli.github.io/shipr/reference/read_ais_txt.html) in [`R/read.R`](https://github.com/mvisalli/shipr/blob/master/R/read.R).
+
+And get top 20 vessels with data.
 
 ```{r}
 library(tidyverse)
@@ -31,6 +34,10 @@ library(shipr)
 # devtools::document()
 # devtools::load_all()
 
+# show sbais dataset, lazy loaded
+sbais
+
+# explicitly attach to environment
 data(sbais)
 
 sbais %>% 
@@ -48,7 +55,9 @@ sbais %>%
 ship_name <- "NAUTILUS"
 
 dir_cache <- "~/tmp/shipr"
-segs <- ship_segments(sbais, ship_name, dir_data = dir_cache)
+
+# show segments table
+segs <- get_ship_segments(sbais, ship_name, dir_data = dir_cache)
 
 # look at ship segments
 hist(segs$seg_kmhr)
@@ -65,11 +74,10 @@ map_ship_segments(segs)
 ## Breakdown Ship Speeds based on Compliance Threshold
 
 ```{r}
-lims <- ship_limits(segs, limit_knots = 10, ship_name, dir_data = dir_cache)
+lims <- get_ship_limits(segs, limit_knots = 10, ship_name, dir_data = dir_cache)
 
-# show limits table without geometry
-lims %>% 
-  sf::st_set_geometry(NULL)
+# show limits table
+lims
 
 map_ship_limits(lims)
 ```
@@ -81,27 +89,26 @@ pct_dist_ok <- lims %>%
   filter(label == "<= 10 knots") %>% 
   pull(pct_dist)
 
-ship_gauge(pct_dist_ok)
+show_ship_gauge(pct_dist_ok)
 ```
 
 ## Value Box
 
 ```{r}
-ship_box(pct_dist_ok)
+show_ship_box(pct_dist_ok)
 ```
 
-This Value Box doesn't render outside flexdashboard environment.
+Note: this value box doesn't really render outside [`flexdashboard`](https://rmarkdown.rstudio.com/flexdashboard) environment.
 
 ## Ship Report Card Directory and Cards
 
 Here's an example of using these functions together to create:
 
 * code: [ecoquants/ship-cards](https://github.com/ecoquants/ship-cards)
-* site: [Ship Report Cards](http://ecoquants.com/ship-cards/) 
-  with color coding based on: [0 - bad - 40 - meh - 80 - bad - 100] % within speed limit
-    * good: [Ship Report Card: CHARLES DREW](http://ecoquants.com/ship-cards/ship/CHARLES%20DREW.html)
-    * meh: [Ship Report Card: CARNIVAL INSPIRATION](http://ecoquants.com/ship-cards/ship/CARNIVAL%20INSPIRATION.html)
-    * bad: [Ship Report Card: RUBEN LASKER](http://ecoquants.com/ship-cards/ship/RUBEN%20LASKER.html)
+* site: [ecoquants.github.io/ship-cards](http://ecoquants.github.io/ship-cards/) with example ship report cards using color coding by [`ship_gauge()`](https://mvisalli.github.io/shipr/reference/ship_gauge.html) and [`ship_box()`](https://mvisalli.github.io/shipr/reference/ship_box.html) in [`R/viz.R`](https://github.com/mvisalli/shipr/blob/master/R/viz.R):
+    * `  >80%`: [Ship Report Card: CHARLES DREW](http://ecoquants.com/ship-cards/ship/CHARLES%20DREW.html)
+    * `40-80%`: [Ship Report Card: CARNIVAL INSPIRATION](http://ecoquants.com/ship-cards/ship/CARNIVAL%20INSPIRATION.html)
+    * `  <40%`: [Ship Report Card: RUBEN LASKER](http://ecoquants.com/ship-cards/ship/RUBEN%20LASKER.html)
 
 ## TODO: Next
 

@@ -2,7 +2,7 @@
 #' Interactive map of ship segments
 #'
 #' @param segs data.frame with sf line segments and speed (km/hr) per segment,
-#'   as returned by \code{\link[bbnj]{ais_ship_segments}}
+#'   as returned by \code{\link{get_ship_segments}}
 #'
 #' @return leaflet map of ship segments, color coded by speed (km/hr)
 #' @importFrom leaflet leaflet colorNumeric addProviderTiles addPolylines addLegend
@@ -29,7 +29,7 @@ map_ship_segments <- function(segs){
 #' Interactive map of ship limits
 #'
 #' @param lims data.frame with sf line segments and speed (km/hr) per segment,
-#'   as returned by \code{\link[bbnj]{ship_limits}}
+#'   as returned by \code{\link{get_ship_limits}}
 #'
 #' @return leaflet map of ship segments, color coded by speed (km/hr)
 #' @importFrom leaflet leaflet colorNumeric addProviderTiles addPolylines addLegend
@@ -67,14 +67,16 @@ map_ship_limits <- function(lims){
 #' @export
 #'
 #' @examples
-ship_gauge <- function(pct_dist_ok, round=1){
+show_ship_gauge <- function(pct_dist_ok, round=1){
   flexdashboard::gauge(
     round(pct_dist_ok, round), min = 0, max = 100, symbol = '%',
     flexdashboard::gaugeSectors(
-      success = c(80, 100), warning = c(40, 79.999), danger = c(0, 39.999)))
+      success = c(80, 100),
+      warning = c(40, 79.999),
+      danger = c(0, 39.999)))
 }
 
-#' Show flexdashboard valueBox of ship performance
+#' Show value box of ship performance
 #'
 #' @param pct_dist_ok percent distance <= speed limit
 #'
@@ -82,7 +84,7 @@ ship_gauge <- function(pct_dist_ok, round=1){
 #' @export
 #'
 #' @examples
-ship_box <- function(pct_dist_ok, round=1){
+show_ship_box <- function(pct_dist_ok, round=1){
   flexdashboard::valueBox(
     round(pct_dist_ok, round),
     icon = "fa-ship",

@@ -63,7 +63,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">shipr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -90,10 +90,18 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/mvisalli/shipr">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -107,7 +115,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Interactive map of ship limits</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/mvisalli/shipr/blob/master/R/viz.R'><code>R/viz.R</code></a></small>
     <div class="hidden name"><code>map_ship_limits.Rd</code></div>
     </div>
 
@@ -125,7 +133,7 @@
     <tr>
       <th>lims</th>
       <td><p>data.frame with sf line segments and speed (km/hr) per segment,
-as returned by <code>ship_limits</code></p></td>
+as returned by <code><a href='get_ship_limits.html'>get_ship_limits</a></code></p></td>
     </tr>
     </table>
     

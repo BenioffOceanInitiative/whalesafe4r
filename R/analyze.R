@@ -1,11 +1,11 @@
-#' Get length in km
+#' Get length in km (internal function)
 #'
 #' @param segment
 #'
 #' @return units in km
 #' @importFrom sf st_length
 #' @importFrom units set_units drop_units
-#' @export
+#' @keywords internal
 #'
 #' @examples
 get_length_km <- function(segment){
@@ -17,7 +17,7 @@ get_length_km <- function(segment){
     drop_units()
 }
 
-#' Create segment from 2 points
+#' Create segment from 2 points (internal function)
 #'
 #' @param p1 sf first point
 #' @param p2 sf second point
@@ -25,10 +25,10 @@ get_length_km <- function(segment){
 #'
 #' @return linestring
 #' @importFrom sf st_combine st_cast st_set_crs
-#' @export
+#' @keywords internal
 #'
 #' @examples
-create_segment <- function(p1, p2, crs=4326){
+get_segment <- function(p1, p2, crs=4326){
 
   if (any(is.na(p1), is.na(p2))) return(NA)
 
@@ -50,11 +50,11 @@ create_segment <- function(p1, p2, crs=4326){
 #' @export
 #'
 #' @examples
-ship_segments <- function(data, ship_name, dir_data="data"){
+get_ship_segments <- function(data, ship_name, dir_data="data"){
 
   lns_rds <- file.path(dir_data, "ship", paste0(ship_name, "_segments.rds"))
   if (file.exists(lns_rds)){
-    message(paste("ship_segments(): reading from", lns_rds))
+    message(paste("get_ship_segments(): reading from", lns_rds))
     lns <- read_rds(lns_rds)
     return(lns)
   }
@@ -71,7 +71,7 @@ ship_segments <- function(data, ship_name, dir_data="data"){
     filter(!duplicated(round_date(datetime, unit="minute"))) %>%
     mutate(
       # get segment based on previous point
-      seg      = map2(lag(geometry), geometry, create_segment),
+      seg      = map2(lag(geometry), geometry, get_segment),
       seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
       seg_km   = map_dbl(seg, get_length_km),
       seg_kmhr = seg_km / (seg_mins / 60),
@@ -88,7 +88,7 @@ ship_segments <- function(data, ship_name, dir_data="data"){
     rename(geometry = seg_geom)
 
   # write lns
-  message(paste("ship_segments(): writing to", lns_rds))
+  message(paste("get_ship_segments(): writing to", lns_rds))
   write_rds(lns, lns_rds)
 
   # return lns
@@ -99,7 +99,7 @@ ship_segments <- function(data, ship_name, dir_data="data"){
 #' Get breakdown of distance and time above/below speed limit
 #'
 #' @param segs data.frame with sf line segments and speed (km/hr) per segment,
-#'   as returned by \code{\link[bbnj]{ais_ship_segments}}
+#'   as returned by \code{\link{get_ship_segments}}
 #' @param limit_knots speed limit in knots
 #' @param ship_name used for storing rds data
 #' @param dir_data directory to cache data
@@ -109,11 +109,11 @@ ship_segments <- function(data, ship_name, dir_data="data"){
 #' @export
 #'
 #' @examples
-ship_limits <- function(segs, limit_knots = 10, ship_name, dir_data="data"){
+get_ship_limits <- function(segs, limit_knots = 10, ship_name, dir_data="data"){
 
   lims_rds <- file.path(dir_data, "ship", paste0(ship_name, "_limits.rds"))
   if (file.exists(lims_rds)){
-    message(paste("ship_limits(): reading from", lims_rds))
+    message(paste("get_ship_limits(): reading from", lims_rds))
     lims <- read_rds(lims_rds)
     return(lims)
   }
@@ -139,7 +139,7 @@ ship_limits <- function(segs, limit_knots = 10, ship_name, dir_data="data"){
       pct_time = min / sum(min) * 100)
 
   # write lims
-  message(paste("ship_limits(): writing to", lims_rds))
+  message(paste("get_ship_limits(): writing to", lims_rds))
   write_rds(lims, lims_rds)
 
   # return lims

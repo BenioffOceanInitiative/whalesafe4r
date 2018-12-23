@@ -60,7 +60,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">shipr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -87,10 +87,18 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/mvisalli/shipr">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -117,23 +125,45 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-read" class="hasAnchor"><a href="#section-read" class="anchor"></a>Read</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
       <tr>
         
         <td>
-          <p><code><a href="create_segment.html">create_segment()</a></code> </p>
+          <p><code><a href="read_ais_txt.html">read_ais_txt()</a></code> </p>
         </td>
-        <td><p>Create segment from 2 points</p></td>
+        <td><p>Read AIS text file</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-analyze" class="hasAnchor"><a href="#section-analyze" class="anchor"></a>Analyze</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="get_ship_limits.html">get_ship_limits()</a></code> </p>
+        </td>
+        <td><p>Get breakdown of distance and time above/below speed limit</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="get_length_km.html">get_length_km()</a></code> </p>
+          <p><code><a href="get_ship_segments.html">get_ship_segments()</a></code> </p>
         </td>
-        <td><p>Get length in km</p></td>
-      </tr><tr>
+        <td><p>Create line segments with speed for specific ship from AIS data</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-visualize" class="hasAnchor"><a href="#section-visualize" class="anchor"></a>Visualize</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="map_ship_limits.html">map_ship_limits()</a></code> </p>
@@ -148,33 +178,15 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="read_ais_txt.html">read_ais_txt()</a></code> </p>
+          <p><code><a href="show_ship_box.html">show_ship_box()</a></code> </p>
         </td>
-        <td><p>Read AIS text file</p></td>
+        <td><p>Show value box of ship performance</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="ship_box.html">ship_box()</a></code> </p>
-        </td>
-        <td><p>Show flexdashboard valueBox of ship performance</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ship_gauge.html">ship_gauge()</a></code> </p>
+          <p><code><a href="show_ship_gauge.html">show_ship_gauge()</a></code> </p>
         </td>
         <td><p>Show gauge of ship performance</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ship_limits.html">ship_limits()</a></code> </p>
-        </td>
-        <td><p>Get breakdown of distance and time above/below speed limit</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ship_segments.html">ship_segments()</a></code> </p>
-        </td>
-        <td><p>Create line segments with speed for specific ship from AIS data</p></td>
       </tr>
     </tbody>
     </table>
@@ -183,7 +195,9 @@
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-read">Read</a></li>
+      <li><a href="#section-analyze">Analyze</a></li>
+      <li><a href="#section-visualize">Visualize</a></li>
     </ul>
   </div>
 </div>

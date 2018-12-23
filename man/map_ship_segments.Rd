@@ -8,7 +8,7 @@ map_ship_segments(segs)
 }
 \arguments{
 \item{segs}{data.frame with sf line segments and speed (km/hr) per segment,
-as returned by \code{\link[bbnj]{ais_ship_segments}}}
+as returned by \code{\link{get_ship_segments}}}
 }
 \value{
 leaflet map of ship segments, color coded by speed (km/hr)

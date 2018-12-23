@@ -1,6 +1,6 @@
 Package: shipr
 Title: ship report card functions
-Version: 0.0.0.9000
+Version: 0.1.0.9000
 Authors@R: person("Ben", "Best", email = "ben@ecoquants.com", role = c("aut", "cre"))
 Description: Builds report cards for ships.
 Depends: R (>= 3.5.1)
@@ -21,3 +21,5 @@ Imports:
     sf,
     stringr,
     units
+URL: https://github.com/mvisalli/shipr
+BugReports: https://github.com/mvisalli/shipr/issues

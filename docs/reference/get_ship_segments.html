@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Interactive map of ship segments — map_ship_segments • shipr</title>
+<title>Create line segments with speed for specific ship from AIS data — get_ship_segments • shipr</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Interactive map of ship segments — map_ship_segments" />
+<meta property="og:title" content="Create line segments with speed for specific ship from AIS data — get_ship_segments" />
 
-<meta property="og:description" content="Interactive map of ship segments" />
+<meta property="og:description" content="Create line segments with speed for specific ship from AIS data" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,32 +114,35 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Interactive map of ship segments</h1>
-    <small class="dont-index">Source: <a href='https://github.com/mvisalli/shipr/blob/master/R/viz.R'><code>R/viz.R</code></a></small>
-    <div class="hidden name"><code>map_ship_segments.Rd</code></div>
+    <h1>Create line segments with speed for specific ship from AIS data</h1>
+    <small class="dont-index">Source: <a href='https://github.com/mvisalli/shipr/blob/master/R/analyze.R'><code>R/analyze.R</code></a></small>
+    <div class="hidden name"><code>get_ship_segments.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Interactive map of ship segments</p>
+    <p>Create line segments with speed for specific ship from AIS data</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>map_ship_segments</span>(<span class='no'>segs</span>)</pre>
+    <pre class="usage"><span class='fu'>get_ship_segments</span>(<span class='no'>data</span>, <span class='no'>ship_name</span>, <span class='kw'>dir_data</span> <span class='kw'>=</span> <span class='st'>"data"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>segs</th>
-      <td><p>data.frame with sf line segments and speed (km/hr) per segment,
-as returned by <code><a href='get_ship_segments.html'>get_ship_segments</a></code></p></td>
+      <th>data</th>
+      <td><p>AIS data.frame</p></td>
+    </tr>
+    <tr>
+      <th>ship_name</th>
+      <td><p>name of ship in AIS data.frame</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>leaflet map of ship segments, color coded by speed (km/hr)</p>
+    <p>data.frame with sf line segments and speed (km/hr) per segment</p>
     
 
   </div>

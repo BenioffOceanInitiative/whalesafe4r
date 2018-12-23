@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">shipr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -57,8 +57,18 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="news/index.html">Changelog</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/mvisalli/shipr">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -72,52 +82,134 @@
 <div id="shipr" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#shipr" class="anchor"></a>shipr</h1></div>
-<div id="package-creation" class="section level2">
+<div id="install-package" class="section level2">
 <h2 class="hasAnchor">
-<a href="#package-creation" class="anchor"></a>Package creation</h2>
+<a href="#install-package" class="anchor"></a>Install Package</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co"># if missing package devtools</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(devtools) </a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="co"># install this R package</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"mvisalli/shipr"</span>)</a></code></pre></div>
+</div>
+<div id="use-package" class="section level2">
+<h2 class="hasAnchor">
+<a href="#use-package" class="anchor"></a>Use Package</h2>
+<ul>
+<li>See R package vignette <a href="https://mvisalli.github.io/shipr/articles/intro.html">Basic Ship Reporting • shipr</a>
+</li>
+<li>See <a href="http://ecoquants.github.io/ship-cards/">website</a> and <a href="https://github.com/ecoquants/ship-cards">code</a> demonstration of making ship cards using <a href="https://bookdown.org/yihui/rmarkdown/parameterized-reports.html">parameterized</a> <a href="https://rmarkdown.rstudio.com/flexdashboard/">flexdashboard</a>.</li>
+</ul>
+</div>
+<div id="package-development" class="section level2">
+<h2 class="hasAnchor">
+<a href="#package-development" class="anchor"></a>Package Development</h2>
+<p>For reference, see:</p>
+<ul>
+<li>cheat sheet: <a href="https://github.com/rstudio/cheatsheets/raw/master/package-development.pdf">package development</a>
+</li>
+<li>book: <a href="http://r-pkgs.had.co.nz/">R packages</a> by Hadley Wickham</li>
+</ul>
 <div id="setup" class="section level3">
 <h3 class="hasAnchor">
 <a href="#setup" class="anchor"></a>setup</h3>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(devtools)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">setup</a></span>()</a></code></pre></div>
+<p>Setup the skeleton of needed files in an existing directory:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">setup</a></span>()</a></code></pre></div>
 </div>
-<div id="data" class="section level3">
+<div id="functions" class="section level3">
 <h3 class="hasAnchor">
-<a href="#data" class="anchor"></a>data</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">use_data_raw</a></span>()</a></code></pre></div>
-<p>Move data files into <code>data-raw/</code>, then <code>sbais.R</code> to generate <code>sbais.csv</code> and load into <code>data/</code> with:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_data">use_data</a></span>(sbais, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-</div>
-<div id="vignettes" class="section level3">
-<h3 class="hasAnchor">
-<a href="#vignettes" class="anchor"></a>vignettes</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">use_vignette</a></span>(<span class="st">"intro"</span>)</a></code></pre></div>
-</div>
-<div id="packages" class="section level3">
-<h3 class="hasAnchor">
-<a href="#packages" class="anchor"></a>packages</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"dplyr"</span>)</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"leaflet"</span>)</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"lubridate"</span>)</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"purrr"</span>)</a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"reader"</span>)</a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"readr"</span>)</a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"sf"</span>)</a>
-<a class="sourceLine" id="cb5-8" data-line-number="8">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"stringr"</span>)</a>
-<a class="sourceLine" id="cb5-9" data-line-number="9">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"units"</span>)</a></code></pre></div>
+<a href="#functions" class="anchor"></a>functions</h3>
+<p>Muliple functions can live in a single *.R script inside the <code>R/</code> folder:</p>
+<ul>
+<li>
+<p><a href="https://github.com/mvisalli/shipr/blob/master/R/read.R"><code>read.R</code></a>:</p>
+<ul>
+<li>
+<code><a href="reference/read_ais_txt.html">read_ais_txt()</a></code>: Read AIS text file</li>
+</ul>
+</li>
+<li>
+<p><a href="https://github.com/mvisalli/shipr/blob/master/R/analyze.R"><code>analyze.R</code></a>:</p>
+<ul>
+<li><p><code>ship_limits()</code>: Get breakdown of distance and time above/below speed limit</p></li>
+<li><p><code>ship_segments()</code>: Create line segments with speed for specific ship from AIS data</p></li>
+</ul>
+</li>
+<li>
+<p><a href="https://github.com/mvisalli/shipr/blob/master/R/viz.R"><code>viz.R</code></a>:</p>
+<ul>
+<li><p><code><a href="reference/map_ship_limits.html">map_ship_limits()</a></code>: Interactive map of ship limits</p></li>
+<li><p><code><a href="reference/map_ship_segments.html">map_ship_segments()</a></code>: Interactive map of ship segments</p></li>
+<li><p><code>ship_gauge()</code>: Show gauge of ship performance</p></li>
+<li><p><code>ship_box()</code>: Show value box of ship performance</p></li>
+</ul>
+</li>
+</ul>
 </div>
 <div id="documentation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#documentation" class="anchor"></a>documentation</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/document">document</a></span>()</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">pkgdown<span class="op">::</span><span class="kw"><a href="https://pkgdown.r-lib.org/reference/build_site.html">build_site</a></span>()</a></code></pre></div>
+<p>Generate the R documentation from roxygen2 comments above the R functions to be placed into the manual folder <code>/man</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/document">document</a></span>()</a></code></pre></div>
+</div>
+<div id="data" class="section level3">
+<h3 class="hasAnchor">
+<a href="#data" class="anchor"></a>data</h3>
+<p>Use raw data:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">use_data_raw</a></span>()</a></code></pre></div>
+<p>Move data files into <code>data-raw/</code>, then <code>sbais.R</code> to generate <code>sbais.csv</code> and load into <code>data/</code> with:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_data">use_data</a></span>(sbais, <span class="dt">overwrite =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+</div>
+<div id="vignettes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#vignettes" class="anchor"></a>vignettes</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/devtools-deprecated">use_vignette</a></span>(<span class="st">"intro"</span>)</a></code></pre></div>
+</div>
+<div id="packages" class="section level3">
+<h3 class="hasAnchor">
+<a href="#packages" class="anchor"></a>packages</h3>
+<p>Create dependencies on packages so these get installed if missing. Updates the DESCRIPTION file:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"dplyr"</span>)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"leaflet"</span>)</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"lubridate"</span>)</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"purrr"</span>)</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"reader"</span>)</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"readr"</span>)</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"sf"</span>)</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"stringr"</span>)</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"units"</span>)</a></code></pre></div>
+</div>
+<div id="website" class="section level3">
+<h3 class="hasAnchor">
+<a href="#website" class="anchor"></a>website</h3>
+<p>Build website into <code>docs/</code> folder with <a href="https://pkgdown.r-lib.org"><code>pkgdown</code></a>, to be hosted using <a href="https://pages.github.com">Github Pages</a>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/document">document</a></span>()</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">pkgdown<span class="op">::</span><span class="kw"><a href="https://pkgdown.r-lib.org/reference/build_site.html">build_site</a></span>()</a></code></pre></div>
+<p>Structure reference listing with <code>inst/_pkgdown.yml</code> per:</p>
+<ul>
+<li><a href="https://pkgdown.r-lib.org/articles/pkgdown.html#configuration">Introduction • pkgdown</a></li>
+<li><a href="https://pkgdown.r-lib.org/reference/build_reference.html"><code>build_reference()</code> • pkgdown</a></li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_github_links">use_github_links</a></span>()</a></code></pre></div>
+<pre><code>✔ Setting URL field in DESCRIPTION to 'https://github.com/mvisalli/shipr'
+✔ Setting BugReports field in DESCRIPTION to 'https://github.com/mvisalli/shipr/issues'</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_news_md">use_news_md</a></span>()</a></code></pre></div>
+<pre><code>✔ Writing 'NEWS.md'</code></pre>
 </div>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <div class="license">
+    <div class="links">
+<h2>Links</h2>
+<ul class="list-unstyled">
+<li>Browse source code at <br><a href="https://github.com/mvisalli/shipr">https://​github.com/​mvisalli/​shipr</a>
+</li>
+<li>Report a bug at <br><a href="https://github.com/mvisalli/shipr/issues">https://​github.com/​mvisalli/​shipr/​issues</a>
+</li>
+</ul>
+</div>
+<div class="license">
 <h2>License</h2>
 <ul class="list-unstyled">
 <li>

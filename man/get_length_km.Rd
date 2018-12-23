@@ -2,7 +2,7 @@
 % Please edit documentation in R/analyze.R
 \name{get_length_km}
 \alias{get_length_km}
-\title{Get length in km}
+\title{Get length in km (internal function)}
 \usage{
 get_length_km(segment)
 }
@@ -13,5 +13,6 @@ get_length_km(segment)
 units in km
 }
 \description{
-Get length in km
+Get length in km (internal function)
 }
+\keyword{internal}

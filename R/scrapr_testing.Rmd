@@ -58,36 +58,45 @@ Scrape a day of AIS DATA into DF
 hours.list = c(0:23)
 hours.list_1 = sprintf('%02d', hours.list)
 
+get_ais_text = function(AIS_text){
 AIS_text = lapply(paste0('https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-', hours.list_1,'.txt'),
                 function(url){
                   url %>% 
                     read_delim(";", col_names = sprintf("X%d", 1:25), col_types = ais_col_types)
                   
                 })
-
+AIS_text
 DF = do.call(rbind.data.frame, AIS_text)
+DF
+}
+
+get_ais_text()
 
 ```
 
+```{r}
 
-```{r, GET AIS NUMBERS}
-list = list()
+year.list = c(2018:2020)
 
-for(h in 2018:2020) {
-    h1 = sprintf('%02d', h)
-    urls = paste0("https://ais.sbarc.org/logs_delimited/", h1, "/")
-   
-    html = getURL(urls)
-  
-    doc = htmlParse(html, asText = TRUE) %>%
-    xpathSApply("//a", xmlValue) %>% 
-    gsub("[^0-9]", "", .) %>% 
-    cat(paste())
-    
-  }
+get_ais_list = function(ais_list){
+ais_list = lapply(paste0("https://ais.sbarc.org/logs_delimited/", year.list, "/"),
+                function(url){
+                  url %>% 
+                    getURL() %>% 
+                      htmlParse(asText = TRUE) %>%
+                        xpathSApply("//a", xmlValue) %>% 
+                          gsub("[^0-9]", "", .) %>% 
+                            cat(paste())
+                  
+                })
+}
+
+get_ais_list()
+
 #needs to write into list... or something
 
 ```
+
 
 
 ```{r, 2019 MANUAL NUMBER ENTRY}
@@ -96,13 +105,13 @@ trip.list = c(190101:191016)
 trip.list_1 = sprintf("%d", trip.list)
 
 try(
-  lapply(paste0('https://ais.sbarc.org/logs_delimited/2019/', trip.list, '/AIS_SBARC_', trip.list,'-',hours.list_1,'.txt'),
+  lapply(paste0('https://ais.sbarc.org/logs_delimited/2019/', trip.list_1, '/AIS_SBARC_', trip.list_1,'-00.txt'),
                 function(url1){
                   url1 %>% 
                     read_delim(";", col_names = sprintf("X%d", 1:25), col_types = ais_col_types)
                   
-                }))
-
+                })
+)
 
 #url issue
 ```
@@ -127,7 +136,6 @@ for (i in 180101:181016) {
    data0 = read_html(url1, "pre") %>%
      html_text() %>% 
      read_delim(";", col_names = sprintf("X%d", 1:25), col_types = ais_col_types)
-   
 }
   }#end for
 

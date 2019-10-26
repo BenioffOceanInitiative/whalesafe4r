@@ -96,7 +96,25 @@ get_ais_list()
 #needs to write into list... or something
 
 ```
+```{r}
 
+get_ais_list = function(){
+  
+    webpage = (paste0("https://ais.sbarc.org/logs_delimited/", year.list, "/"))
+    urls = getURL(webpage) 
+    text = htmlParse(urls, asText = TRUE) 
+    values = xpathSApply(text, "//a", xmlValue)
+    ais_list = gsub("[^0-9]", "", values) %>% 
+      as.numeric()
+    ais_list = ais_list[!is.na(ais_list)]
+    
+    ais_df = data.frame(ais_list)
+    
+    return(ais_df)
+}
+
+get_ais_list()
+```
 
 
 ```{r, 2019 MANUAL NUMBER ENTRY}

@@ -1,0 +1,100 @@
+---
+title: "outline"
+author: "Sean Goral"
+date: "11/5/2019"
+output: html_document
+---
+
+---
+date: "11/1/2019"
+output: 
+  html_document: 
+    df_print: kable
+    fig_caption: yes
+    keep_md: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(xml2)
+```
+
+
+# General Overview
+Ultimately the goal is to be able to extract the data from the files located in 
+sub-directories of the [ais logs site](https://ais.sbarc.org/logs_delimited/) to perform
+deeper analysis. 
+
+The directory/tree structure of the site generally follows the pattern of: 
+
+* Year folder, ie 2018  
+  * Date folder, ie 180101 for Jan 1, 2018
+    * Series of data dumps to text files
+
+**OR**
+
+```
+./  
+YYYY/  
+ ¦--YYmmdd  
+     ¦--AIS_SBARC_YYmmdd-nn.txt  
+     °--AIS_SBARC_YYmmdd-nn+1.txt  
+```
+
+Each `<a>` element also has a sibling text node on the page that shows the last-updated time: 
+```{r}
+
+.fn <- function(start_url = NULL){
+  raw <- xml2::read_html(start_url)
+  
+  links <- xml2::xml_find_all(raw, ".//a[not(contains(@href,'../'))]")
+  
+  meta_text <- xml2::xml_find_all(links, ".//following-sibling::text()[normalize-space(.)]") %>% 
+    xml2::xml_text() %>% stringi::stri_replace_all_regex("(\\s+){2,}(\\-)?", "", vectorize_all = FALSE)
+  
+  data.frame(
+    url_path = xml2::url_absolute(xml_attr(links,"href"), xml2::xml_url(raw)), 
+    metadata = meta_text,
+    stringsAsFactors = FALSE
+  )
+}
+
+
+dat <- .fn(start_url = "https://ais.sbarc.org/logs_delimited/")
+
+knitr::kable(dat, format = "markdown")
+
+```
+
+As we recursively walk down the tree to get to our text files, sub directories of dates would look like the following, but
+it's important to note that the metadata doesn't always coincide with the date of the folder name. Notice in the output below
+how the folder for data related to 01/01/2018 shows it was actually last updated on 10/16/2019   
+```{r}
+dat2 <- .fn("https://ais.sbarc.org/logs_delimited/2018/") %>% head(4)
+knitr::kable(dat2, format = "markdown")
+```
+
+And finally we get to our bottom-most children, which are the text files we are after 
+```{r}
+dat3 <- .fn("https://ais.sbarc.org/logs_delimited/2018/180101/")
+knitr::kable(dat3, format = "markdown")
+```
+
+
+
+
+
+# Process
+
+1) Build index of all links  
+    * log the metadata for the last-updated timestamps and file path  
+    * log a logical indicating if the data has already been read-in/extracted for the associated file  
+2) Filter the index table for only urls that have not been read-in  
+3) Loop through urls and parse the data  
+4) Update the log file  
+5) Bind the output data  					

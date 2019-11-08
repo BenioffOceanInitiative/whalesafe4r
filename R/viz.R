@@ -1,5 +1,5 @@
 
-#' Interactive map of ship segments
+#' Interactive map of ship segments based on location
 #'
 #' @param segs data.frame with sf line segments and speed (km/hr) per segment,
 #'   as returned by \code{\link{get_ship_segments}}

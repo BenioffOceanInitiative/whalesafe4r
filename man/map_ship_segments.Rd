@@ -2,7 +2,7 @@
 % Please edit documentation in R/viz.R
 \name{map_ship_segments}
 \alias{map_ship_segments}
-\title{Interactive map of ship segments}
+\title{Interactive map of ship segments based on location}
 \usage{
 map_ship_segments(segs)
 }
@@ -14,5 +14,5 @@ as returned by \code{\link{get_ship_segments}}}
 leaflet map of ship segments, color coded by speed (km/hr)
 }
 \description{
-Interactive map of ship segments
+Interactive map of ship segments based on location
 }

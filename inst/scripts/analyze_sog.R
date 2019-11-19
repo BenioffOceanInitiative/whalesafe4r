@@ -77,14 +77,41 @@ leaflet::leaflet(lns) %>%
   leaflet::addLegend(
     pal = pal, values = ~seg_sog, title = "Speed (km/hr)")
 
-#leaflet map for km/hr calculated by distance/time
-pal1 <- leaflet::colorNumeric("Spectral", lns$seg_km, reverse=T)
+pts_1 <- sbais %>%
+  # filter to single vessel
+  # convert to sf points tibble
+  st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+  # sort by datetime
+  arrange(datetime) %>%
+  # filter to only one point per minute to reduce weird speeds
+  filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+  mutate(
+    # get segment based on previous point
+    seg      = map2(lag(geometry), geometry, get_segment),
+    seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+    seg_km   = map_dbl(seg, get_length_km),
+    seg_kmhr = seg_km / (seg_mins / 60),
+    seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+    seg_num  = cumsum(seg_new))
 
-leaflet::leaflet(lns) %>%
+# setup lines
+lns_1 <- pts_1 %>%
+  filter(seg_new == 0) %>%
+  filter(seg_km <=100) %>%
+  group_by(name) %>%
+  mutate(
+    seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
+  st_set_geometry("seg_geom") %>%
+  select(-seg, -geometry) %>%
+  rename(geometry = seg_geom)
+
+#leaflet map for km/hr calculated by distance/time
+pal1 <- leaflet::colorNumeric("Spectral", lns_1$seg_kmhr, reverse=T)
+
+leaflet::leaflet(lns_1) %>%
   leaflet::addProviderTiles(providers$Esri.OceanBasemap) %>%
   leaflet::addPolylines(
-    color = ~pal1(seg_km),
-    label = ~sprintf("%0.03f km/hr on %s", seg_km, datetime)) %>%
-  leaflet::addLegend(
-    pal = pal1, values = ~seg_km, title = "Speed (km/hr)") # , labFormat = labelFormat())
+    color = ~pal1(seg_kmhr),
+    label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, datetime))
+
 

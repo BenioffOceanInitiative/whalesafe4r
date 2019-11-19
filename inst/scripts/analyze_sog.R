@@ -25,7 +25,7 @@ get_segment <- function(p1, p2, crs=4326){
 
 pts <- sbais %>%
   # filter to single vessel
-  #group_by(name==ship_name) %>%
+  #group_by(name) %>%
   # convert to sf points tibble
   st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
   # sort by datetime

@@ -8,13 +8,16 @@ library(dbplyr)
 driver <- dbDriver("PostgreSQL")
 
 # echo "secret" > ~/private/boi_ship-strike_rds-free.txt
-pw_file <- "~/private/boi_ship-strike_rds-free.txt"
-pw <- readLines(pw_file)
+#pw_file <- "~/private/boi_ship-strike_rds-free.txt"
+#pw <- readLines(pw_file)
 
 con <- dbConnect(
   driver,
-  dbname = "mydb",
-  host = "yew.clem64jg8sf4.us-west-1.rds.amazonaws.com",
+  dbname = "benioff_citizen_science",
+  host = "benioffdb.clem64jg8sf4.us-west-1.rds.amazonaws.com",
   port = 5432,
   user = "master",
-  password = pw)
+  password = "Kook1991")
+
+df_postgres <- dbGetQuery(con, "SELECT count(*) from ")
+

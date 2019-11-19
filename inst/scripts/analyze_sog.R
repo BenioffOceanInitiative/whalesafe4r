@@ -35,7 +35,9 @@ pts <- sbais %>%
   mutate(
     # get segment based on previous point
     seg      = map2(lag(geometry), geometry, get_segment),
-    seg_km   = map_dbl(seg, get_length_km), #giving warning
+    seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+    seg_km   = map_dbl(seg, get_length_km),#giving warning
+    seg_kmhr = seg_km / (seg_mins / 60),
     #apply speed over ground to next segment
     seg_sog = lag(speed),
     #if speed over ground is NA or greaterthan 50, return 1, otherwise 0
@@ -62,7 +64,7 @@ g = ggplot(lns) +
 
 g
 
-#leaflet map
+#leaflet map for S.O.G.
 pal <- leaflet::colorNumeric("Spectral", lns$seg_sog, reverse=T)
 
 data("providers", package="leaflet")
@@ -74,3 +76,15 @@ leaflet::leaflet(lns) %>%
     label = ~sprintf("%0.03f km/hr on %s", seg_sog, datetime)) %>%
   leaflet::addLegend(
     pal = pal, values = ~seg_sog, title = "Speed (km/hr)")
+
+#leaflet map for km/hr calculated by distance/time
+pal1 <- leaflet::colorNumeric("Spectral", lns$seg_km, reverse=T)
+
+leaflet::leaflet(lns) %>%
+  leaflet::addProviderTiles(providers$Esri.OceanBasemap) %>%
+  leaflet::addPolylines(
+    color = ~pal1(seg_km),
+    label = ~sprintf("%0.03f km/hr on %s", seg_km, datetime)) %>%
+  leaflet::addLegend(
+    pal = pal1, values = ~seg_km, title = "Speed (km/hr)") # , labFormat = labelFormat())
+

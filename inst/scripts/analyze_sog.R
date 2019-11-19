@@ -54,7 +54,7 @@ lns <- pts %>%
   rename(geometry = seg_geom)
 
 #map to see linestring errors
-
+#ggplot map...
 g = ggplot(lns) +
   annotation_map_tile(zoom = 7) +
   geom_sf(aes(color = seg_sog)) +
@@ -62,6 +62,15 @@ g = ggplot(lns) +
 
 g
 
-leaflet() %>%
-    addTiles() %>%
-    addPolygons(data = lns)
+#leaflet map
+pal <- leaflet::colorNumeric("Spectral", lns$seg_sog, reverse=T)
+
+data("providers", package="leaflet")
+
+leaflet::leaflet(lns) %>%
+  leaflet::addProviderTiles(providers$Esri.OceanBasemap) %>%
+  leaflet::addPolylines(
+    color = ~pal(seg_sog),
+    label = ~sprintf("%0.03f km/hr on %s", seg_sog, datetime)) %>%
+  leaflet::addLegend(
+    pal = pal, values = ~seg_sog, title = "Speed (km/hr)")

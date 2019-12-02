@@ -1,9 +1,8 @@
 library(tidyverse)
-
 library(sf)
 library(lubridate)
 library(units)
-library(ggspatial)
+#library(ggspatial)
 library(leaflet)
 
 get_length_km <- function(segment){
@@ -24,15 +23,17 @@ get_segment <- function(p1, p2, crs=4326){
     st_set_crs(crs)
 }
 
-df_postgres <- dbGetQuery(con, "SELECT datetime, name, mmsi, speed, lon, lat from all_ship_data WHERE datetime >= '2019-11-01'")
+df_postgres <- dbGetQuery(con, "SELECT datetime, name, mmsi, speed, lon, lat from all_ship_data WHERE datetime >= '2019-11-11'")
 
-pts <- df_postgres %>%
+df=df_postgres[order(df_postgres$datetime, df_postgres$name),]
+
+pts <- df %>%
   # filter to single vessel
-  filter(name == "OCEAN ANGEL 3") %>%
+  filter(name == c("MILLENNIUMSTAR")) %>%
   # convert to sf points tibble
   st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
   # sort by datetime
-  arrange(datetime) %>%
+  arrange(name) %>%
   # filter to only one point per minute to reduce weird speeds
   filter(!duplicated(round_date(datetime, unit="minute"))) %>%
   mutate(
@@ -45,6 +46,7 @@ pts <- df_postgres %>%
     #apply speed over ground to next segment
     seg_sog = speed)
 
+
 # setup lines
 lns <- pts %>%
   filter(seg_km <=100) %>%
@@ -53,41 +55,27 @@ lns <- pts %>%
   #group_by(name) %>%
   mutate(
     seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
-  st_set_geometry("seg_geom") %>%
-  select(-seg, -geometry) %>%
-  rename(geometry = seg_geom)
+  st_set_geometry("seg_geom")
 
 lns$seg_sog = as.numeric(lns$seg_sog)
-
-#leaflet map for S.O.G.
-pal <- leaflet::colorNumeric(palette="Spectral", lns$seg_kmhr, reverse=T)
-
-leaflet::leaflet(lns) %>%
-  leaflet::addProviderTiles(providers$Esri.OceanBasemap) %>%
-  leaflet::addPolylines(
-    color = ~pal(seg_kmhr),
-    label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, datetime)) %>%
-  leaflet::addLegend(
-    pal = pal, values = ~seg_kmhr, title = "Speed (km/hr)")
-
 
 #leaflet map for km/hr calculated by distance/time
 pal <- leaflet::colorNumeric(palette="Spectral", lns$seg_kmhr, reverse=T)
 
 pal1 <- leaflet::colorNumeric(palette="Spectral", lns$seg_sog, reverse=T)
 
-leaflet::leaflet(lns) %>%
+m = leaflet::leaflet(lns) %>%
   leaflet::addProviderTiles(providers$Esri.OceanBasemap) %>%
   leaflet::addPolylines(
-    color = ~pal(seg_sog),
-    label = ~sprintf("%0.03f km/hr on %s", seg_sog, datetime), group="sog") %>%
+    color = ~pal1(seg_sog),
+    label = ~sprintf("%0.03f km/hr on %s", seg_sog, datetime, name), group="sog") %>%
   leaflet::addLegend(
     pal = pal1, values = ~seg_sog, title = "Speed (km/hr)") %>%
   leaflet::addPolylines(
     color = ~pal(seg_kmhr),
-    label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, datetime),group="speed_calc") %>%
+    label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, datetime, name),group="speed_calc") %>%
   addLayersControl(
-  #baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
   overlayGroups = c("sog", "speed_calc"),
-  options = layersControlOptions(collapsed = F)
-)
+  options = layersControlOptions(collapsed = F))
+m
+

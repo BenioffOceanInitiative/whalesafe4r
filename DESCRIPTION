@@ -1,5 +1,5 @@
-Package: shipr
-Title: ship report card functions
+Package: s4wr
+Title: ships for whales functions
 Version: 0.1.0.9000
 Authors@R: person("Ben", "Best", email = "ben@ecoquants.com", role = c("aut", "cre"))
 Description: Builds report cards for ships.
@@ -20,6 +20,12 @@ Imports:
     readr,
     sf,
     stringr,
-    units
+    units,
+    yaml,
+    DBI,
+    RPostgres,
+    glue,
+    here,
+    xml2
 URL: https://github.com/mvisalli/shipr
 BugReports: https://github.com/mvisalli/shipr/issues

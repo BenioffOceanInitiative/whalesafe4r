@@ -96,6 +96,12 @@ usethis::use_package("readr")
 usethis::use_package("sf")
 usethis::use_package("stringr")
 usethis::use_package("units")
+usethis::use_package("yaml")
+usethis::use_package("DBI")
+usethis::use_package("RPostgres")
+usethis::use_package("glue")
+usethis::use_package("here")
+usethis::use_package("xml2")
 ```
 
 ### website

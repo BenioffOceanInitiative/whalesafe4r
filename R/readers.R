@@ -31,16 +31,16 @@ date.build <- function(ymd = NULL, ts = NULL){
 get_length_km <- function(segment){
   # seg <- p$segment[2]
   if (is.na(segment)) return(NA)
-  
+
   st_length(segment) %>%
     set_units("km") %>%
     drop_units()
 }
 
 get_segment <- function(p1, p2, crs=4326){
-  
+
   if (any(is.na(p1), is.na(p2))) return(NA)
-  
+
   st_combine(c(p1, p2)) %>%
     st_cast("LINESTRING") %>%
     st_set_crs(crs)
@@ -51,9 +51,9 @@ get_segment <- function(p1, p2, crs=4326){
 whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
   raw <- utils::read.delim(path, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
-  df <- dplyr::filter(raw, V6 %in% 1:3) %>% 
-    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>% 
-    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>% 
+  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
+    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
+    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>%
     #st_as_sf(coords = c("lon", "lat"), crs=4326)
   #set up numeric columns
   cols.num = c("mmsi","speed","lon","lat")
@@ -62,58 +62,51 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
   logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
   return(df)
 }
+#test whale.read function
 d = whale.read("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 
-#BROKE
+#read ais.txt data and return linestring df
 ship_lines <- function(path = NULL){
   df <- whale.read(path)
-  pts <- df %>%
-  # convert to sf points tibble
-  st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
-  # filter to only one point per minute to reduce weird speeds
-  filter(!duplicated(round_date(datetime, unit="minute"))) %>%
-  mutate(
-    # get segment based on previous point
-    seg = map2(lag(geometry), geometry, get_segment),
-    seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
-    seg_km   = map_dbl(seg, get_length_km),#giving warning
-    #calculated speed in kilometers/hour
-    seg_kmhr = seg_km / (seg_mins / 60),
-    #calculated speed in knots
-    seg_knots = seg_kmhr * 0.539957,
-    #tells whether segment is 'new' based on being greater than 60 mins. 
-    seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-    #apply speed over ground (SOG) to next segment
-    seg_sog = speed)
+  df=df[order(df$name, df$datetime),]
 
-# setup lines
-  lines <- pts %>%
+  lns <- df %>%
+    # convert to sf points tibble
+    st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+    # filter to only one point per minute to reduce weird speeds
+    #  filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+    mutate(
+      # get segment based on previous point
+      seg = map2(lag(geometry), geometry, get_segment),
+      seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+      seg_km   = map_dbl(seg, get_length_km),#giving warning
+      #calculated speed in kilometers/hour
+      seg_kmhr = seg_km / (seg_mins / 60),
+      #calculated speed in knots
+      seg_knots = seg_kmhr * 0.539957,
+      #tells whether segment is 'new' based on being greater than 60 mins.
+      seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+      #apply speed over ground (SOG) to next segment
+      seg_sog = speed)%>%
     filter(seg_km <=100) %>%
     filter(!is.na(seg_sog)) %>%
     filter(seg_new == 0) %>%
     mutate(
       seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
-    st_set_geometry("seg_geom") 
+    st_set_geometry("seg_geom")
   #make sure speed over ground (SOG) is numeric
-  lines$seg_sog = as.numeric(lines$seg_sog)
-  
-  lines$year = format(as.Date(lines$datetime, format="%d/%m/%Y"),"%Y")
+  lns$seg_sog = as.numeric(lns$seg_sog)
 
-  return(lines)
+  lns$year = format(as.Date(lns$datetime, format="%d/%m/%Y"),"%Y")
+
+  return(lns)
 }
 
-d = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-#MESSIN around with for loop vs mcapply
-
-#b =logfile.next_url(log_df)
-#n_links <- length(b)
-#pb <- progress_bar$new(total = n_links)
-
-
+e = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #for (i in 1:n_links) { # i = 1
  # pb$tick()
   #Sys.sleep(1 / 100)
-  
+
 #  url <- b[i]
  # message(glue("{i} of {length(b)}: {url}"))
   #df = whale.read(path = url, log_df = log_df, assign_back = TRUE)
@@ -132,22 +125,22 @@ d = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_19010
 #
 #
 .whale <- function(){
-  
+
   seq_table <- data.frame(s = seq(1, nrow(log_df), 1200)) %>%
     mutate(e = c(lead(s, 1, NULL) - 1, nrow(log_df)))
-  
+
   lapply(1:nrow(seq_table), function(i){
-    
+
     d <- seq_table[i, ]
     # file name
     rds_path <- sprintf("inst/data/whale_data_urls_%s_through_%s.rds", d$s, d$e)
-    
+
     files_needed <- log_df[seq(d$s, d$e), 'url']
-    
+
     o <- lapply(files_needed, function(j){
       whale.read(path = j, log_df = log_df, assign_back = TRUE)
     })
-    
+
     saveRDS(rbind_pages(o), rds_path)
   })
 }
@@ -156,13 +149,13 @@ d = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_19010
 whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
   raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
-  df <- dplyr::filter(raw, V6 %in% 1:3) %>% 
-    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>% 
+  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
+    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
   cols.num = c("mmsi","speed","lon","lat")
   df[cols.num] = sapply(df[cols.num], as.numeric)
     #df$geom = st_as_sf(coords = c("lon", "lat"), crs=4326)
     logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
-  
+
   return(df)
 }

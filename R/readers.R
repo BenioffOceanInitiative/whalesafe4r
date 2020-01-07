@@ -65,16 +65,26 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
 #test whale.read function
 d = whale.read("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 
-#read ais.txt data and return linestring df
+#read ais.txt data and return linestring df (still tweaking)
 ship_lines <- function(path = NULL){
-  df <- whale.read(path)
+  raw <- utils::read.delim(path, sep = ";", header = FALSE, quote = "")
+  # clean and parse the df
+  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
+    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
+    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>%
+  #st_as_sf(coords = c("lon", "lat"), crs=4326)
+  #set up numeric columns
+
+  cols.num = c("mmsi","speed","lon","lat")
+  df[cols.num] = sapply(df[cols.num], as.numeric)
+
   df=df[order(df$name, df$datetime),]
 
-  lns <- df %>%
+  df <- df %>%
     # convert to sf points tibble
-    st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
-    # filter to only one point per minute to reduce weird speeds
-    #  filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+     sf::st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+    # # filter to only one point per minute to reduce weird speeds
+      dplyr::filter(!duplicated(round_date(datetime, unit="minute"))) %>%
     mutate(
       # get segment based on previous point
       seg = map2(lag(geometry), geometry, get_segment),
@@ -87,22 +97,22 @@ ship_lines <- function(path = NULL){
       #tells whether segment is 'new' based on being greater than 60 mins.
       seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
       #apply speed over ground (SOG) to next segment
-      seg_sog = speed)%>%
-    filter(seg_km <=100) %>%
-    filter(!is.na(seg_sog)) %>%
-    filter(seg_new == 0) %>%
+      seg_sog = speed)
+    df$seg_sog = as.numeric(df$seg_sog)
+  df = df %>%
+      dplyr::filter(seg_sog < 100) %>%
+      dplyr::filter(seg_new == 0) %>%
     mutate(
-      seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
+      seg_geom = map(seg, 1) %>%
+        st_as_sfc(crs=4326)) %>%
     st_set_geometry("seg_geom")
-  #make sure speed over ground (SOG) is numeric
-  lns$seg_sog = as.numeric(lns$seg_sog)
 
-  lns$year = format(as.Date(lns$datetime, format="%d/%m/%Y"),"%Y")
-
-  return(lns)
+  return(df)
 }
 
 e = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+
+
 #for (i in 1:n_links) { # i = 1
  # pb$tick()
   #Sys.sleep(1 / 100)

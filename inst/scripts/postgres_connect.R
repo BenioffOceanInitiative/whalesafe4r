@@ -19,5 +19,4 @@ con <- dbConnect(
   user = "master",
   password = "Kook1991")
 
-df_postgres <- dbGetQuery(con, "SELECT count(*) from ")
 

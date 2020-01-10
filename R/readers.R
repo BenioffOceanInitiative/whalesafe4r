@@ -28,6 +28,7 @@ date.build <- function(ymd = NULL, ts = NULL){
 }
 
 # Spatial functions -----------------------------------------------------------
+
 get_length_km <- function(segment){
   # seg <- p$segment[2]
   if (is.na(segment)) return(NA)
@@ -72,14 +73,16 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
   # clean and parse the df
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
     mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
-    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>%
-    #st_as_sf(coords = c("lon", "lat"), crs=4326)
+    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
   #set up numeric columns
   cols.num = c("speed","lon","lat")
   df[cols.num] = sapply(df[cols.num], as.numeric)
   #update logfile
   logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
 
+  df <- df %>%
+    filter(lon >= -123.5, lon <= -116.9) %>%
+    filter(lat >= 32.0, lat <= 35.5)
   return(df)
 }
 
@@ -101,7 +104,7 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
 #'
 #' @examples
 #' df1 = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-
+#'
 
 whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
   raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
@@ -109,10 +112,15 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
     mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
+  #set specific columns as numeric
   cols.num = c("mmsi","speed","lon","lat","heading")
   df[cols.num] = sapply(df[cols.num], as.numeric)
-  #df$geom = st_as_sf(coords = c("lon", "lat"), crs=4326)
+  #update log_df with files being read by function
   logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
+  # filter lon and lat within certain area
+  df <- df %>%
+    filter(lon >= -123.5, lon <= -116.9) %>%
+    filter(lat >= 32.0, lat <= 35.5)
 
   return(df)
 }
@@ -135,7 +143,10 @@ shippy_lines <- function(path=NULL){
 
   #order df
   df=df[order(df$name,df$datetime),]
-  df$speed <- as.numeric(df$speed)
+  #filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
+  df = df %>%
+    filter(lon >= -121.15, lon <= -117.15) %>%
+    filter(lat >= 33.175, lat <= 34.355)
 
   pts <- df %>%
     # convert to sf points tibble
@@ -178,6 +189,11 @@ df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_19
 #system.time({
 testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #})
+
+m=leaflet(testy) %>%
+  addTiles() %>%
+  addPolylines()
+m
 
  length(unique(df$name))
 # # 37 ship names

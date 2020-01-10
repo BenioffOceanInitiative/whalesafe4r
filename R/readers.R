@@ -27,7 +27,7 @@ date.build <- function(ymd = NULL, ts = NULL){
   as.POSIXct(pat, "%Y-%m-%d %H:%M:%OS", tz = "UTC")
 }
 
-#Spatial functions
+# Spatial functions -----------------------------------------------------------
 get_length_km <- function(segment){
   # seg <- p$segment[2]
   if (is.na(segment)) return(NA)
@@ -46,8 +46,27 @@ get_segment <- function(p1, p2, crs=4326){
     st_set_crs(crs)
 }
 
-
+# Reader functions -----------------------------------------------------------
 #read text file, update log_df
+
+#' Read AIS text files from URL
+#'
+#' @param path
+#' @param log_df
+#' @param logfile_path
+#' @param assign_back
+#' @param ...
+#'
+#' @return df data.frame of data. TODO: describe all the rules and expectations
+#'   based on AIS_SBARC_*.txt with possibility for alternate file formats and
+#'   filtering for class A position reports, ie Message ID 1,2,3 per
+#'   https://www.navcen.uscg.gov/?pageName=AISMessages.
+#' @export
+#'
+#' @examples
+#'
+#' df = whale.read("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+
 whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
   raw <- utils::read.delim(path, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
@@ -60,13 +79,56 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
   df[cols.num] = sapply(df[cols.num], as.numeric)
   #update logfile
   logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
+
   return(df)
 }
 
-#test whale.read function
-df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 
-#read ais.txt data and return linestring df (still tweaking)
+#' whale.reader()
+#' Read AIS text files into data.frame from URL and updates log_df data.frame
+#'
+#' @param path
+#' @param log_df
+#' @param logfile_path
+#' @param assign_back
+#' @param ...
+#'
+#' @returndf data.frame of data. TODO: describe all the rules and expectations
+#'   based on AIS_SBARC_*.txt with possibility for alternate file formats and
+#'   filtering for class A position reports, ie Message ID 1,2,3 per
+#'   https://www.navcen.uscg.gov/?pageName=AISMessages.
+#' @export
+#'
+#' @examples
+#' df1 = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+
+
+whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
+  raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
+  # clean and parse the df
+  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
+    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
+    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
+  cols.num = c("mmsi","speed","lon","lat","heading")
+  df[cols.num] = sapply(df[cols.num], as.numeric)
+  #df$geom = st_as_sf(coords = c("lon", "lat"), crs=4326)
+  logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
+
+  return(df)
+}
+
+
+#' Spatial Reader function -----------------------------------------------------------
+#' Read ais.txt data from URL path and return spatial data.frame (still tweaking)
+#' @param path URL for AIS.txt file
+#'
+#' @return data.frame with segments/linestrings with distance (km), calculated speed, and reported speed
+#' @export
+#'
+#' @examples
+#' testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#'
+
 shippy_lines <- function(path=NULL){
 
   whale.reader(path)
@@ -82,7 +144,7 @@ shippy_lines <- function(path=NULL){
     # FILTER to only one point per MINUTE to reduce weird speeds, BUT FILTERS A LOT OF SHIP NAMES
     #filter(!duplicated(round_date(datetime, unit="minute"))) %>%
     # FILTER to only one point per SECOND to reduce weird speeds, BUT STILL FILTERS OUT SOME SHIPS
-    #filter(!duplicated(round_date(datetime, unit="second"))) %>%
+    filter(!duplicated(round_date(datetime, unit="second"))) %>%
     mutate(
       # get segment based on previous point
       seg      = map2(lag(geometry), geometry, get_segment),
@@ -104,20 +166,25 @@ shippy_lines <- function(path=NULL){
   return(lns)
 }
 
+
+#test whale.read() function
+
 #system.time({
-testy=shippy_lines(test)
+df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #})
 
-length(unique(df$name))
-# 113 ship names
-length(unique(pts$name))
-#unfiltered rounded datetime: 113
-# filtered rounded datetime(seconds): 63
-# filtered rounded datetime(minutes): 6
-length(unique(lns$name))
-#unfiltered rounded datetime: 79
-# filtered rounded datetime(seconds): 43
-# filtered rounded datetime(minutes): 3
+#test shippy_lines() function
+
+#system.time({
+testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#})
+
+ length(unique(df$name))
+# # 37 ship names
+ length(unique(testy$name))
+# #unfiltered rounded datetime: 26
+# # filtered rounded datetime(seconds): 22
+# # filtered rounded datetime(minutes): 2
 
 
 #for (i in 1:n_links) { # i = 1
@@ -160,20 +227,5 @@ length(unique(lns$name))
 
     saveRDS(rbind_pages(o), rds_path)
   })
-}
-
-#read.csv reader....
-whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
-  raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
-  # clean and parse the df
-  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
-    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
-    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
-  cols.num = c("mmsi","speed","lon","lat","heading")
-  df[cols.num] = sapply(df[cols.num], as.numeric)
-    #df$geom = st_as_sf(coords = c("lon", "lat"), crs=4326)
-    logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
-
-  return(df)
 }
 

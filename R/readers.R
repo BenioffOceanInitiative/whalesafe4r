@@ -56,61 +56,68 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>%
     #st_as_sf(coords = c("lon", "lat"), crs=4326)
   #set up numeric columns
-  cols.num = c("mmsi","speed","lon","lat")
+  cols.num = c("speed","lon","lat")
   df[cols.num] = sapply(df[cols.num], as.numeric)
   #update logfile
   logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
   return(df)
 }
+
 #test whale.read function
-d = whale.read("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 
 #read ais.txt data and return linestring df (still tweaking)
-ship_lines <- function(path = NULL){
-  raw <- utils::read.delim(path, sep = ";", header = FALSE, quote = "")
-  # clean and parse the df
-  df <- dplyr::filter(raw, V6 %in% 1:3) %>%
-    mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
-    select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16) #%>%
-  #st_as_sf(coords = c("lon", "lat"), crs=4326)
-  #set up numeric columns
+shippy_lines <- function(path=NULL){
 
-  cols.num = c("mmsi","speed","lon","lat")
-  df[cols.num] = sapply(df[cols.num], as.numeric)
+  whale.reader(path)
 
-  df=df[order(df$name, df$datetime),]
+  #order df
+  df=df[order(df$name,df$datetime),]
+  df$speed <- as.numeric(df$speed)
 
-  df <- df %>%
+  pts <- df %>%
     # convert to sf points tibble
-     sf::st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
-    # # filter to only one point per minute to reduce weird speeds
-      dplyr::filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+    st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+    # sort by datetime
+    # FILTER to only one point per MINUTE to reduce weird speeds, BUT FILTERS A LOT OF SHIP NAMES
+    #filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+    # FILTER to only one point per SECOND to reduce weird speeds, BUT STILL FILTERS OUT SOME SHIPS
+    #filter(!duplicated(round_date(datetime, unit="second"))) %>%
     mutate(
       # get segment based on previous point
-      seg = map2(lag(geometry), geometry, get_segment),
+      seg      = map2(lag(geometry), geometry, get_segment),
       seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
-      seg_km   = map_dbl(seg, get_length_km),#giving warning
-      #calculated speed in kilometers/hour
+      seg_km   = map_dbl(seg, get_length_km),
       seg_kmhr = seg_km / (seg_mins / 60),
-      #calculated speed in knots
-      seg_knots = seg_kmhr * 0.539957,
-      #tells whether segment is 'new' based on being greater than 60 mins.
       seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-      #apply speed over ground (SOG) to next segment
-      seg_sog = speed)
-    df$seg_sog = as.numeric(df$seg_sog)
-  df = df %>%
-      dplyr::filter(seg_sog < 100) %>%
-      dplyr::filter(seg_new == 0) %>%
+      speed_diff = seg_kmhr - speed)
+
+  # setup lines
+  lns <- pts %>%
+    #segments can't be longer than 60 km, negative in time or speed
+    filter(seg_km <=60, seg_mins >=0, speed >0) %>%
+    filter(seg_new == 0) %>%
     mutate(
-      seg_geom = map(seg, 1) %>%
-        st_as_sfc(crs=4326)) %>%
+      seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
     st_set_geometry("seg_geom")
 
-  return(df)
+  return(lns)
 }
 
-e = ship_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#system.time({
+testy=shippy_lines(test)
+#})
+
+length(unique(df$name))
+# 113 ship names
+length(unique(pts$name))
+#unfiltered rounded datetime: 113
+# filtered rounded datetime(seconds): 63
+# filtered rounded datetime(minutes): 6
+length(unique(lns$name))
+#unfiltered rounded datetime: 79
+# filtered rounded datetime(seconds): 43
+# filtered rounded datetime(minutes): 3
 
 
 #for (i in 1:n_links) { # i = 1
@@ -162,10 +169,11 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
     mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
-  cols.num = c("mmsi","speed","lon","lat")
+  cols.num = c("mmsi","speed","lon","lat","heading")
   df[cols.num] = sapply(df[cols.num], as.numeric)
     #df$geom = st_as_sf(coords = c("lon", "lat"), crs=4326)
     logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
 
   return(df)
 }
+

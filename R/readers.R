@@ -182,9 +182,9 @@ testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_1
  length(unique(df$name))
 # # 37 ship names
  length(unique(testy$name))
-# #unfiltered rounded datetime: 26
-# # filtered rounded datetime(seconds): 22
-# # filtered rounded datetime(minutes): 2
+# #unfiltered rounded datetime: 26, slower but retains most data
+# # filtered rounded datetime(seconds): 22, faster, but may be losing important data...
+# # filtered rounded datetime(minutes): 2, sketchy...
 
 
 #for (i in 1:n_links) { # i = 1

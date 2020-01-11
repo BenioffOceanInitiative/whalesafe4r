@@ -54,7 +54,7 @@ update_ais_data <- function(){
   #close database connection
   dbDisconnect(con)
 
-  return(DF)
+  return(SF_DF)
 
   }
 

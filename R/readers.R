@@ -173,7 +173,7 @@ shippy_lines <- function(path=NULL){
     mutate(
       seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
     st_set_geometry("seg_geom")
-
+  lns$year <- format(as.POSIXct(lns$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y")
   return(lns)
 }
 

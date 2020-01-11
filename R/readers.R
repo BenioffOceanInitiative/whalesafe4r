@@ -180,24 +180,24 @@ shippy_lines <- function(path=NULL){
 
 #test whale.read() function
 
-#system.time({
-df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-#})
-
-#test shippy_lines() function
-
-#system.time({
-testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-#})
-
-m=leaflet(testy) %>%
-  addTiles() %>%
-  addPolylines()
-m
-
- length(unique(df$name))
-# # 37 ship names
- length(unique(testy$name))
+# #system.time({
+# df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+# #})
+#
+# #test shippy_lines() function
+#
+# #system.time({
+# testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+# #})
+#
+# m=leaflet(testy) %>%
+#   addTiles() %>%
+#   addPolylines()
+# m
+#
+#  length(unique(df$name))
+# # # 37 ship names
+#  length(unique(testy$name))
 # #unfiltered rounded datetime: 26, slower but retains most data
 # # filtered rounded datetime(seconds): 22, faster, but may be losing important data...
 # # filtered rounded datetime(minutes): 2, sketchy...

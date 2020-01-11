@@ -1,17 +1,17 @@
 
 
- log_df_test <- data.frame(
-   url = character(),
-   is_read = logical(),
-   timestamp = as.POSIXct(character()),
-   stringsAsFactors = T
- )
-
- #all_links = whale.dive(u = "https://ais.sbarc.org/logs_delimited/")
+ # log_df_test <- data.frame(
+ #   url = character(),
+ #   is_read = logical(),
+ #   timestamp = as.POSIXct(character()),
+ #   stringsAsFactors = T
+ # )
+ #
+ # all_links = whale.dive(u = "https://ais.sbarc.org/logs_delimited/")
 
 # o <- whale.dive(u = "https://ais.sbarc.org/logs_delimited/2019/")
 # o2 <- whale.dive(u = "https://ais.sbarc.org/logs_delimited/2018/")
- 
+
 # log_df_test <- rbind(log_df_test, data.frame(url = all_links, is_read = F, timestamp = as.numeric(Sys.time())))
 #
 #saveRDS(list(whale_links_2018 = o2, whale_links_2019 = o, test_df = log_df_test), file = "inst/data/sandbox_data.rds")
@@ -66,7 +66,7 @@
 #'
 #' FOR DB connection
 #'
-#' Create the object in R as the_log 
+#' Create the object in R as the_log
 #' the_log <- dbConnect(your_tables)
 #'
 #' this will reassign the new data to the_log, note that if assign_back = FALSE,
@@ -77,7 +77,7 @@
 #' writeDB(the_log, ...)
 #'
 #' Example if the data is in the environment as log_df_test with only 4 rows
-#' nrow(log_df_test)
+ nrow(log_df)
 #' [1] 4
 #'
 #' > tail(log_df_test,1)
@@ -94,7 +94,7 @@
 #' [1] 5
 #'
 #' @export
-#' 
+#'
 logfile.update <- function(log_df = NULL, url = NULL, is_read = FALSE, assign_back = FALSE,
                            logfile_path = NULL, ...){
 

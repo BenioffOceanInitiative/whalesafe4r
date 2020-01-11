@@ -202,28 +202,6 @@ m
 # # filtered rounded datetime(seconds): 22, faster, but may be losing important data...
 # # filtered rounded datetime(minutes): 2, sketchy...
 
-
-#for (i in 1:n_links) { # i = 1
- # pb$tick()
-  #Sys.sleep(1 / 100)
-
-#  url <- b[i]
- # message(glue("{i} of {length(b)}: {url}"))
-  #df = whale.read(path = url, log_df = log_df, assign_back = TRUE)
-  #dbWriteTable(conn = con, name = 'ais_data_test', value = df,append=T)
-#}
-
-#
-#whale_df <- new.env()
-#
-#o <- parallel::mclapply(tst, function(i){
-#  df <- whale.read(path = i, log_df = log_df, assign_back = TRUE)
-#  assign(i, df, envir = whale_df)
-#  dbWriteTable(conn = con, name = 'ais_data_test1', value = df,append=T)
-#}, mc.cores = 6)
-#.whale(x = log_df$url[321:1200])
-#
-#
 .whale <- function(){
 
   seq_table <- data.frame(s = seq(1, nrow(log_df), 1200)) %>%

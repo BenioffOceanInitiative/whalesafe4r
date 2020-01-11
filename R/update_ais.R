@@ -22,11 +22,18 @@ update_ais_data <- function(){
 
   #loop through new_links and update log_df
   new_data <- purrr::map(new_links, function(url){
-    df <-  tryCatch(whale.read(path = url, log_df = log_df, assign_back = TRUE), error=function(e) NULL)
+    df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE), error=function(e) NULL)
     assign(url, df)
   })
 
-  DF= do.call(rbind,new_data)
+  DF = do.call(rbind,new_data)
+
+  new_sf_data <- purrr::map(tst, function(url){
+    df <-  tryCatch(shippy_lines(path = url), error=function(e) NULL)
+    assign(url, df)
+  })
+
+  SF_DF = do.call(rbind,new_sf_data)
 
   dbWriteTable(con, name = 'ais_data_testy', value = DF, append=T)
 

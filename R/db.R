@@ -70,5 +70,5 @@ db_connect <- function(db_yml = here::here("s4w_amazon_rds.yml")){
 }
 
 
-
+con=db_connect()
 

@@ -164,8 +164,9 @@ shippy_lines <- function(path=NULL){
       seg_kmhr = seg_km / (seg_mins / 60),
       seg_knots = seg_kmhr * 0.539957,
       seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-      # Reported "speed" - "seg_knots" (calculated speed)
-      speed_diff = seg_knots - speed)
+      # Reported "speed" - (calculated speed) "seg_knots"
+      speed_diff = seg_knots - speed,
+      seg_comly = if_else(speed <= 10, 1, 0))
 
   # setup lines
   lns <- pts %>%

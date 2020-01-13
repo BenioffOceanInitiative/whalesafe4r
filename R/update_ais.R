@@ -7,6 +7,10 @@ source('~/github/s4wr/R/utils.R')
 #' Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs
 #'
 #' @return
+#' @importFrom RPostgreSQL
+#' @importFrom dplyr select
+#' @importFrom lubridate as_datetime
+#' @importFrom parallel mclapply detectCores
 #' @export
 #'
 #' @examples

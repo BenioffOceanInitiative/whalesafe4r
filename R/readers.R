@@ -112,6 +112,8 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
     mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
+  df$date = format(as.Date(df$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y-%m-%d")
+  df$date = as_date(df$datetime)
   #set specific columns as numeric
   cols.num = c("mmsi","speed","lon","lat","heading")
   df[cols.num] = sapply(df[cols.num], as.numeric)

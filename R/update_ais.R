@@ -14,7 +14,7 @@ source('~/github/s4wr/R/utils.R')
 #'
 update_ais_data <- function(){
   # Initiate connection
-  con =db_connect()
+  con = db_connect()
   # Create "log" dataframe in R from log_df table in database
   log = dbGetQuery(con, "SELECT * FROM log_df;")
   # Subtract 'row.names' column
@@ -26,6 +26,7 @@ update_ais_data <- function(){
   # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
   log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
   tst = new_links[1:24] #Test 1 day
+  n_cores = parallel::detectCores()
   # Loop through "new_links" and update "log_df"
   new_data <- parallel::mclapply(tst, function(url){
     df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
@@ -37,7 +38,7 @@ update_ais_data <- function(){
                       return(NA)
                     })
           assign(url, df)
-  }, mc.cores = 8)
+  }, mc.cores = n_cores)
   # row bind "new_data"
   DF = do.call(rbind,new_data)
 
@@ -45,7 +46,7 @@ update_ais_data <- function(){
   new_sf_data <-  parallel::mclapply(tst, function(url){
     df <-  tryCatch(shippy_lines(path = url), error=function(e) NULL)
     assign(url, df)
-  }, mc.cores = 8)
+  }, mc.cores = n_cores)
   # Row bind "new_sf_data"
   SF_DF = do.call(rbind,new_sf_data)
 
@@ -63,9 +64,9 @@ update_ais_data <- function(){
   }
 
 
-system.time({
-test=update_ais_data()
-})
+# system.time({
+# test=update_ais_data()
+# })
 
 # 24 links with purrr:map
 # user    system  elapsed

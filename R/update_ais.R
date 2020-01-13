@@ -1,3 +1,8 @@
+source('~/github/s4wr/R/db.R')
+source('~/github/s4wr/R/logfile_funs.R')
+source('~/github/s4wr/R/crawlers.R')
+source('~/github/s4wr/R/readers.R')
+source('~/github/s4wr/R/utils.R')
 
 #' Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs
 #'
@@ -8,7 +13,7 @@
 #' cred_path = "/Users/seangoral/github/s4wr/s4w_amazon_rds.yml"
 #'
 update_ais_data <- function(){
-  # initiate connection
+  # Initiate connection
   con =db_connect()
   # Create "log" dataframe in R from log_df table in database
   log = dbGetQuery(con, "SELECT * FROM log_df;")
@@ -18,9 +23,9 @@ update_ais_data <- function(){
   last_read = logfile.last_url(log)
   # Get list of new links by giving get_ais_urls() funcction last_read
   new_links = get_ais_urls(last_read)
-  # Create "log_df" in R by binding new_links (unread) with "log" dataframe
-  log_df <- rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
-
+  # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
+  log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
+  tst = new_links[1:24] #Test 1 day
   # Loop through "new_links" and update "log_df"
   new_data <- parallel::mclapply(tst, function(url){
     df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
@@ -38,12 +43,11 @@ update_ais_data <- function(){
 
   # Loop through "new_links" and create segments spatial data
   new_sf_data <-  parallel::mclapply(tst, function(url){
-    df1 <-  tryCatch(shippy_lines(path = url), error=function(e) NULL)
-    assign(url, df1)
+    df <-  tryCatch(shippy_lines(path = url), error=function(e) NULL)
+    assign(url, df)
   }, mc.cores = 8)
   # Row bind "new_sf_data"
   SF_DF = do.call(rbind,new_sf_data)
-
 
   #write ais_data to 'ais_data' table in database
   dbWriteTable(con, name = 'ais_data_testy', value = DF, append=T)

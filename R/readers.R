@@ -103,7 +103,7 @@ whale.read <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_b
 #' @export
 #'
 #' @examples
-#' df1 = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#' df = whale.reader("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #'
 
 whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
@@ -139,16 +139,16 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
 
 shippy_lines <- function(path=NULL){
 
-  whale.reader(path)
+  df1 = whale.reader(path)
 
-  #order df
-  df=df[order(df$name,df$datetime),]
+  #order df1
+  df1=df1[order(df1$name,df1$datetime),]
   #filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
-  df = df %>%
+  df1 = df1 %>%
     filter(lon >= -121.15, lon <= -117.15) %>%
     filter(lat >= 33.175, lat <= 34.355)
 
-  pts <- df %>%
+  pts <- df1 %>%
     # convert to sf points tibble
     st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
     # sort by datetime
@@ -162,8 +162,10 @@ shippy_lines <- function(path=NULL){
       seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
       seg_km   = map_dbl(seg, get_length_km),
       seg_kmhr = seg_km / (seg_mins / 60),
+      seg_knots = seg_kmhr * 0.539957,
       seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-      speed_diff = seg_kmhr - speed)
+      # Reported "speed" - "seg_knots" (calculated speed)
+      speed_diff = seg_knots - speed)
 
   # setup lines
   lns <- pts %>%

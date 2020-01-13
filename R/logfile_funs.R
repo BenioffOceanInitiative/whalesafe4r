@@ -77,7 +77,7 @@
 #' writeDB(the_log, ...)
 #'
 #' Example if the data is in the environment as log_df_test with only 4 rows
- nrow(log_df)
+#' nrow(log_df)
 #' [1] 4
 #'
 #' > tail(log_df_test,1)

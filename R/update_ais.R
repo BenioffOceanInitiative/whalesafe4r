@@ -28,28 +28,28 @@ update_ais_data <- function(){
   new_links = get_ais_urls(last_read)
   # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
   log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
-  tst = new_links[1:24] #Test 1 day
-  n_cores = parallel::detectCores()
-  # Loop through "new_links" and update "log_df"
-  new_data <- parallel::mclapply(new_links, function(url){
-    df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
-                    # ... but if an error occurs, tell me what happened:
-                    error=function(e) NULL)
-          assign(url, df)
-  }, mc.cores = 4)
-  # row bind "new_data"
-  DF = do.call(rbind,new_data)
+  #tst = new_links[1:24] #Test 1 day
+  # n_cores = parallel::detectCores()
+  # # Loop through "new_links" and update "log_df"
+  # new_data <- parallel::mclapply(new_links, function(url){
+  #   df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
+  #                   # ... but if an error occurs, tell me what happened:
+  #                   error=function(e) NULL)
+  #         assign(url, df)
+  # }, mc.cores = 4)
+  # # row bind "new_data"
+  # DF = do.call(rbind,new_data)
 
   ##################
   n_links <- length(new_links)
-  pb <- progress_bar$new(total = n_links)
+  #pb <- progress_bar$new(total = n_links)
 
   for (i in 1:n_links) { # i = 1
-    pb$tick()
+    #pb$tick()
     Sys.sleep(1 / 100)
 
     url <- new_links[i]
-    message(glue("{i} of {length(new_links)}: {url}"))
+    #message(glue("{i} of {length(new_links)}: {url}"))
     df = tryCatch(whale.read(path = url, log_df = log_df, assign_back = TRUE),
                   # ... but if an error occurs, tell me what happened:
                   error=function(e) NULL)
@@ -78,7 +78,35 @@ update_ais_data <- function(){
 
   }
 
+#brokn...
+update_ais <- function(){
+  # Initiate connection
+  con = db_connect()
+  # Create "log" dataframe in R from log_df table in database
+  log = dbGetQuery(con, "SELECT * FROM log_df;") %>%
+    select(-row.names)
+  # Get last read ais.txt file
+  last_read = logfile.last_url(log)
+  # Get list of new links by giving get_ais_urls() funcction last_read
+  new_links = get_ais_urls(last_read)
+  # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
+  log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
 
+  n_links <- length(new_links)
+
+  for (i in 1:n_links) {
+    Sys.sleep(1 / 100)
+    url <- new_links[i]
+    df = tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
+                  # ... but if an error occurs, tell me what happened:
+                  error=function(e) NULL)
+
+    dbWriteTable(conn = con, name = 'ais_data_test1', value = df,append=T)
+  }
+
+  #dbWriteTable(con, name = 'log_df_test1', value = log_df, overwrite=TRUE)
+  #dbDisconnect(conn = con)
+}
 # system.time({
 # test=update_ais_data()
 # })

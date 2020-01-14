@@ -23,10 +23,10 @@ Imports:
     units,
     yaml,
     DBI,
-    parallel
     RPostgres,
     glue,
     here,
-    xml2
+    xml2,
+    parallel
 URL: https://github.com/BenioffOceanInitiative/s4wr
 BugReports: https://github.com/BenioffOceanInitiative/s4wr/issues

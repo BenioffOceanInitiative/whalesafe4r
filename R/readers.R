@@ -113,7 +113,7 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
     mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
     select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
   df$date = format(as.Date(df$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y-%m-%d")
-  df$date = as_date(df$datetime)
+  df$date = lubridate::as_date(df$datetime)
   #set specific columns as numeric
   cols.num = c("mmsi","speed","lon","lat","heading")
   df[cols.num] = sapply(df[cols.num], as.numeric)
@@ -140,46 +140,99 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
 #'
 
 shippy_lines <- function(path=NULL){
+  # library(dplyr)
+  # devtools::load_all()
 
-  df1 = whale.reader(path)
-
+  # path = "https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt"
+  df <- whale.reader(path) %>%
+    arrange(name, datetime) %>%
   #order df1
-  df1=df1[order(df1$name,df1$datetime),]
+  #df1=df1[order(df1$name,df1$datetime),]
   #filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
-  df1 = df1 %>%
+  # df1 = df1 %>%
     filter(lon >= -121.15, lon <= -117.15) %>%
     filter(lat >= 33.175, lat <= 34.355)
 
-  pts <- df1 %>%
-    # convert to sf points tibble
-    st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
-    # sort by datetime
-    # FILTER to only one point per MINUTE to reduce weird speeds, BUT FILTERS A LOT OF SHIP NAMES
-    #filter(!duplicated(round_date(datetime, unit="minute"))) %>%
-    # FILTER to only one point per SECOND to reduce weird speeds, BUT STILL FILTERS OUT SOME SHIPS
-    filter(!duplicated(round_date(datetime, unit="second"))) %>%
-    mutate(
-      # get segment based on previous point
-      seg      = map2(lag(geometry), geometry, get_segment),
-      seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
-      seg_km   = map_dbl(seg, get_length_km),
-      seg_kmhr = seg_km / (seg_mins / 60),
-      seg_knots = seg_kmhr * 0.539957,
-      seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-      # Reported "speed" - (calculated speed) "seg_knots"
-      speed_diff = seg_knots - speed,
-      seg_comly = if_else(speed <= 10, TRUE, FALSE))
+  pts2segflds <- function(df){
+    df %>%
+      # sort by datetime
+      arrange(datetime) %>%
+      # FILTER to only one point per MINUTE to reduce weird speeds,
+      # TODO: check that does not FILTER A LOT OF SHIP NAMES
+      filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+      # convert to sf points tibble
+      st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+      mutate(
+        # get segment based on previous point
+        seg      = map2(lag(geometry), geometry, get_segment),
+        seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+        seg_km   = map_dbl(seg, get_length_km),
+        seg_kmhr = seg_km / (seg_mins / 60),
+        seg_knots = seg_kmhr * 0.539957,
+        seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+        # Reported "speed" - (calculated speed) "seg_knots"
+        speed_diff = seg_knots - speed,
+        seg_comply = if_else(speed <= 10, TRUE, FALSE))
+  }
 
-  # setup lines
+  pts2lns <- function(df){
+
+    # setup lines
+    lns <- df %>%
+      #segments can't be longer than 60 km, negative in time or speed
+      filter(seg_km <=60, seg_mins >=0, speed >0) %>%
+      filter(seg_new == 0) %>%
+      mutate(
+        geometry = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
+      st_set_geometry("geometry")
+    lns$year <- format(as.POSIXct(lns$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y")
+
+    lns
+  }
+
+  pts <- df %>%
+    group_by(name) %>%
+    tidyr::nest() %>%
+    mutate(
+      data = map(data, pts2segflds))
+  class(pts$data[[1]])
+
+  library(tidyr)
+  library(sf)
   lns <- pts %>%
-    #segments can't be longer than 60 km, negative in time or speed
-    filter(seg_km <=60, seg_mins >=0, speed >0) %>%
-    filter(seg_new == 0) %>%
     mutate(
-      geometry = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
-    st_set_geometry("geometry")
-  lns$year <- format(as.POSIXct(lns$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y")
+      lns_data = map(data, pts2lns)) %>%
+    select(-data) %>%
+    mutate(
+      nrows   = purrr::map_dbl(lns_data, nrow),
+      st_type = purrr::map_chr(
+        lns_data,
+        function(x)
+          paste(unique(st_geometry_type(x)), collapse=" & "))) %>%
+    #filter(nrows > 0) %>%
+    filter(st_type == "LINESTRING") %>%
+    select(-nrows, -st_type) #%>%
+    #do.call(rbind, .) %>%
+    #unlist()
+    #unnest(lns_data, .preserve = geometry)
 
+  # TODO: get
+  lns_data <- do.call(rbind, lns$lns_data)
+
+  lns %>%
+    ungroup() %>%
+    slice(1:2) %>%
+    unnest(lns_data)
+  rbind(lns$lns_data[[1]], lns$lns_data[[2]])
+  # Error: No common type for `..1$lns_data$geometry` <sfc_LINESTRING> and `..2$lns_data$geometry` <sfc_LINESTRING>.
+  #Run `rlang::last_error()` to see where the error occurred.
+
+  unique(lns$st_type)
+  table(lns$st_type)
+  unique(st_geometry_type(lns$lns_data[[1]]))
+
+
+  lns %>% unnest(data)
   return(lns)
 }
 

@@ -20,9 +20,8 @@ update_ais_data <- function(){
   # Initiate connection
   con = db_connect()
   # Create "log" dataframe in R from log_df table in database
-  log = dbGetQuery(con, "SELECT * FROM log_df;")
-  # Subtract 'row.names' column
-  log = log %>% select(-row.names)
+  log = dbGetQuery(con, "SELECT * FROM log_df;") %>%
+    select(-row.names)
   # Get last read ais.txt file
   last_read = logfile.last_url(log)
   # Get list of new links by giving get_ais_urls() funcction last_read
@@ -32,19 +31,31 @@ update_ais_data <- function(){
   tst = new_links[1:24] #Test 1 day
   n_cores = parallel::detectCores()
   # Loop through "new_links" and update "log_df"
-  new_data <- parallel::mclapply(tst, function(url){
+  new_data <- parallel::mclapply(new_links, function(url){
     df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
                     # ... but if an error occurs, tell me what happened:
-                    error=function(error_message) {
-                      message(" - Empty or corrupted ais.txt files.")
-                      message("And below is the error message from R:")
-                      message(error_message)
-                      return(NA)
-                    })
+                    error=function(e) NULL)
           assign(url, df)
-  }, mc.cores = n_cores)
+  }, mc.cores = 4)
   # row bind "new_data"
   DF = do.call(rbind,new_data)
+
+  ##################
+  n_links <- length(new_links)
+  pb <- progress_bar$new(total = n_links)
+
+  for (i in 1:n_links) { # i = 1
+    pb$tick()
+    Sys.sleep(1 / 100)
+
+    url <- new_links[i]
+    message(glue("{i} of {length(new_links)}: {url}"))
+    df = tryCatch(whale.read(path = url, log_df = log_df, assign_back = TRUE),
+                  # ... but if an error occurs, tell me what happened:
+                  error=function(e) NULL)
+    dbWriteTable(conn = con, name = 'ais_data_test', value = df,append=T)
+  }
+  ##################
 
   # Loop through "new_links" and create segments spatial data
   new_sf_data <-  parallel::mclapply(tst, function(url){
@@ -63,7 +74,7 @@ update_ais_data <- function(){
   #close database connection
   dbDisconnect(con)
 
-  return(SF_DF)
+  #return(SF_DF)
 
   }
 

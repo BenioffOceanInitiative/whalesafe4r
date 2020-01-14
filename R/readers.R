@@ -1,4 +1,4 @@
-
+source('~/github/s4wr/R/logfile_funs.R')
 
 # date handlers -----------------------------------------------------------
 
@@ -168,7 +168,7 @@ shippy_lines <- function(path=NULL){
       seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
       # Reported "speed" - (calculated speed) "seg_knots"
       speed_diff = seg_knots - speed,
-      seg_comly = if_else(speed <= 10, 1, 0))
+      seg_comly = if_else(speed <= 10, TRUE, FALSE))
 
   # setup lines
   lns <- pts %>%
@@ -176,9 +176,10 @@ shippy_lines <- function(path=NULL){
     filter(seg_km <=60, seg_mins >=0, speed >0) %>%
     filter(seg_new == 0) %>%
     mutate(
-      seg_geom = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
-    st_set_geometry("seg_geom")
+      geometry = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
+    st_set_geometry("geometry")
   lns$year <- format(as.POSIXct(lns$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y")
+
   return(lns)
 }
 

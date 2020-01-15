@@ -27,6 +27,8 @@ Imports:
     glue,
     here,
     xml2,
-    parallel
+    parallel,
+    tidyr,
+    tibble
 URL: https://github.com/BenioffOceanInitiative/s4wr
 BugReports: https://github.com/BenioffOceanInitiative/s4wr/issues

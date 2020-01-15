@@ -144,16 +144,18 @@ shippy_lines <- function(path=NULL){
   # devtools::load_all()
 
   # path = "https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt"
-  df <- whale.reader(path) %>%
+  d <- whale.reader(path) %>%
     arrange(name, datetime) %>%
-  #order df1
-  #df1=df1[order(df1$name,df1$datetime),]
-  #filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
-  # df1 = df1 %>%
-    filter(lon >= -121.15, lon <= -117.15) %>%
-    filter(lat >= 33.175, lat <= 34.355)
+    # filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
+    filter(
+      lon >= -121.15 , lon <= -117.15,
+      lat >=   33.175, lat <=   34.355) %>%
+    # collapse data by ship name
+    group_by(name) %>%
+    nest()
 
-  pts2segflds <- function(df){
+  # convert to points and add segment fields to the data list column
+  d2pts <- function(df){
     df %>%
       # sort by datetime
       arrange(datetime) %>%
@@ -175,65 +177,50 @@ shippy_lines <- function(path=NULL){
         seg_comply = if_else(speed <= 10, TRUE, FALSE))
   }
 
-  pts2lns <- function(df){
+  d <- d %>%
+    mutate(
+      data = map(data, d2pts))
+
+  # filter points and construct segments as lines
+  pts2lns <- function(d){
 
     # setup lines
-    lns <- df %>%
-      #segments can't be longer than 60 km, negative in time or speed
+    d %>%
+      # filter points longer than 60 km, negative in time or speed
       filter(seg_km <=60, seg_mins >=0, speed >0) %>%
       filter(seg_new == 0) %>%
+      # construct lines
       mutate(
         geometry = map(seg, 1) %>% st_as_sfc(crs=4326)) %>%
-      st_set_geometry("geometry")
-    lns$year <- format(as.POSIXct(lns$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y")
-
-    lns
+      st_set_geometry("geometry") %>%
+      # add year
+      mutate(
+        year = lubridate::year(datetime))
   }
 
-  pts <- df %>%
-    group_by(name) %>%
-    tidyr::nest() %>%
+  d <- d %>%
     mutate(
-      data = map(data, pts2segflds))
-  class(pts$data[[1]])
+      data = map(data, pts2lns))
 
-  library(tidyr)
-  library(sf)
-  lns <- pts %>%
+  # combine ship name with data and bind across tibbles
+  d <- d %>%
+    # filter ships without lines
+    # TODO: investigate why some nrow == 0, eg INDEPENDENCE (row 9) in example path
     mutate(
-      lns_data = map(data, pts2lns)) %>%
-    select(-data) %>%
+      nrow = map_int(data, nrow)) %>%
+    filter(nrow > 0) %>%
+    select(-nrow) %>%
+    # combine ship name with rest of data
     mutate(
-      nrows   = purrr::map_dbl(lns_data, nrow),
-      st_type = purrr::map_chr(
-        lns_data,
-        function(x)
-          paste(unique(st_geometry_type(x)), collapse=" & "))) %>%
-    #filter(nrows > 0) %>%
-    filter(st_type == "LINESTRING") %>%
-    select(-nrows, -st_type) #%>%
-    #do.call(rbind, .) %>%
-    #unlist()
-    #unnest(lns_data, .preserve = geometry)
-
-  # TODO: get
-  lns_data <- do.call(rbind, lns$lns_data)
-
-  lns %>%
+      data = map2(
+        name, data,
+        function(x, y)
+          add_column(y, name = x, .before = 1))) %>%
     ungroup() %>%
-    slice(1:2) %>%
-    unnest(lns_data)
-  rbind(lns$lns_data[[1]], lns$lns_data[[2]])
-  # Error: No common type for `..1$lns_data$geometry` <sfc_LINESTRING> and `..2$lns_data$geometry` <sfc_LINESTRING>.
-  #Run `rlang::last_error()` to see where the error occurred.
+    select(data)
+  d <- do.call(rbind, d$data)
 
-  unique(lns$st_type)
-  table(lns$st_type)
-  unique(st_geometry_type(lns$lns_data[[1]]))
-
-
-  lns %>% unnest(data)
-  return(lns)
+  d
 }
 
 

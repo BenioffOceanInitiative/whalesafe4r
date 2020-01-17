@@ -141,6 +141,7 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
 
 shippy_lines <- function(path=NULL){
   # library(dplyr)
+  # library(tidyr)
   # devtools::load_all()
 
   # path = "https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt"
@@ -163,23 +164,32 @@ shippy_lines <- function(path=NULL){
       # TODO: check that does not FILTER A LOT OF SHIP NAMES
       filter(!duplicated(round_date(datetime, unit="minute"))) %>%
       # convert to sf points tibble
-      st_as_sf(coords = c("lon", "lat"), crs=4326) %>%
+      st_as_sf(coords = c("lon", "lat"), crs=4326, remove = F) %>%
       mutate(
         # get segment based on previous point
-        seg      = map2(lag(geometry), geometry, get_segment),
-        seg_mins = (datetime - lag(datetime)) %>% as.double(units = "mins"),
-        seg_km   = map_dbl(seg, get_length_km),
-        seg_kmhr = seg_km / (seg_mins / 60),
+        speed     = lag(speed),
+        beg_dt    = lag(datetime),
+        end_dt    = datetime,
+        beg_lon   = lag(lon),
+        beg_lat   = lag(lat),
+        end_lon   = lon,
+        end_lat   = lat,
+        seg       = map2(lag(geometry), geometry, get_segment),
+        seg_mins  = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+        seg_km    = map_dbl(seg, get_length_km),
+        seg_kmhr  = seg_km / (seg_mins / 60),
         seg_knots = seg_kmhr * 0.539957,
-        seg_new  = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+        seg_new   = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
         # Reported "speed" - (calculated speed) "seg_knots"
-        speed_diff = seg_knots - speed,
-        seg_comply = if_else(speed <= 10, TRUE, FALSE))
+        speed_diff    = seg_knots - speed,
+        seg_lt10_rep  = if_else(speed <= 10, TRUE, FALSE),
+        seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE))
   }
 
   d <- d %>%
     mutate(
       data = map(data, d2pts))
+
 
   # filter points and construct segments as lines
   pts2lns <- function(d){

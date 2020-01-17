@@ -54,12 +54,13 @@ seg_filter <- function(){
   return(SF_DF_filtered)
 }
 
-a=sqldf("select * from 'sf_df_filtered'")
+# a=sqldf("select * from 'sf_df_filtered'")
+# DBI::dbGetQuery(con, )
 
-leaflet(sf_df_filtered) %>%
-  addTiles() %>%
-  addPolylines()
+# leaflet(sf_df_filtered) %>%
+#   addTiles() %>%
+#   addPolylines()
 
-if (sf_df_filtered$vsr_id ==1){
-  sf_df_filtered$indicator <- st_within(sf_df_filtered, vsr_zones$geom[1]) %>% lengths > 0
-}
+# if (sf_df_filtered$vsr_id ==1){
+#   sf_df_filtered$indicator <- st_within(sf_df_filtered, vsr_zones$geom[1]) %>% lengths > 0
+# }

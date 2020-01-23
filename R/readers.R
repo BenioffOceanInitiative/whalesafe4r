@@ -136,7 +136,9 @@ whale.reader <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign
 #' @export
 #'
 #' @examples
-#' testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+# system.time({
+# testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+# })
 #'
 
 shippy_lines <- function(path=NULL){
@@ -147,10 +149,6 @@ shippy_lines <- function(path=NULL){
   # path = "https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt"
   d <- whale.reader(path) %>%
     arrange(name, datetime) %>%
-    # filter lon and lat to area just slightly larger than NOAA's 2019 VOLUNTARY WHALE ADVISORY VESSEL SPEED REDUCTION ZONE (largest zone thus far)
-    filter(
-      lon >= -121.15 , lon <= -117.15,
-      lat >=   33.175, lat <=   34.355) %>%
     # collapse data by ship name
     group_by(name) %>%
     nest()
@@ -228,7 +226,9 @@ shippy_lines <- function(path=NULL){
           add_column(y, name = x, .before = 1))) %>%
     ungroup() %>%
     select(data)
-  d <- do.call(rbind, d$data)
+  # data.table::rbindlist seemingly faster than do.call... ~30 seconds/day
+  # d <- do.call(rbind, d$data)
+  d <- sf::st_as_sf(data.table::rbindlist(d$data))
 
   d
 }
@@ -242,21 +242,23 @@ shippy_lines <- function(path=NULL){
 #
 # #test shippy_lines() function
 #
-# #system.time({
-# testy=shippy_lines("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-# #})
+# system.time({
+#   docally=shippy_lines(jun_1)
+# })
+# # user  system elapsed
+# # 174.695   5.978 185.425
 #
-# m=leaflet(testy) %>%
+# system.time({
+#   dt_rbindy=shippy_lines(jun_1)
+# })
+# user  system elapsed
+# 147.782   5.433 154.814
+#
+# m=leaflet(d) %>%
 #   addTiles() %>%
 #   addPolylines()
 # m
 #
-#  length(unique(df$name))
-# # # 37 ship names
-#  length(unique(testy$name))
-# #unfiltered rounded datetime: 26, slower but retains most data
-# # filtered rounded datetime(seconds): 22, faster, but may be losing important data...
-# # filtered rounded datetime(minutes): 2, sketchy...
 
 .whale <- function(){
 

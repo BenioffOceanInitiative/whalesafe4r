@@ -14,6 +14,7 @@ VignetteBuilder: knitr
 RoxygenNote: 6.1.1
 Imports: 
     dplyr,
+    data.table,
     leaflet,
     lubridate,
     purrr,

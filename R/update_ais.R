@@ -28,6 +28,7 @@ update_ais_data <- function(){
   new_links = get_ais_urls(last_read)
   # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
   log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
+
   #tst = new_links[1:24] #Test 1 day
   # n_cores = parallel::detectCores()
   # # Loop through "new_links" and update "log_df"
@@ -41,6 +42,7 @@ update_ais_data <- function(){
   # DF = do.call(rbind,new_data)
 
   ##################
+
   n_links <- length(new_links)
   #pb <- progress_bar$new(total = n_links)
 
@@ -65,10 +67,36 @@ update_ais_data <- function(){
   # Row bind "new_sf_data"
   SF_DF = do.call(rbind,new_sf_data)
 
+  # creates vsr_segs df based on whether ais_segments data in db is within vsr date ranges and intersects the corresponding vsr polygon
+  vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query =
+                            # [PostGIS — Getting intersections the faster way](https://postgis.net/2014/03/14/tip_intersection_faster/)
+                          "SELECT s.name, s.seg_mins, s.seg_km,
+                          s.seg_kmhr, s.seg_knots, s.speed_diff,
+                          s.seg_lt10_rep, s.seg_lt10_calc, s.year,
+                          s.beg_dt, s.beg_lon, s.beg_lat,
+                          s.end_dt, s.end_lon, s.end_lat,
+                          z.gid
+                          , CASE
+                          WHEN
+                          ST_CoveredBy(s.geometry, z.geom)
+                          THEN s.geometry
+                          ELSE
+                          ST_Multi(
+                          ST_Intersection(s.geometry, z.geom)
+                          ) END AS geometry
+                          FROM ais_segments AS s
+                          INNER JOIN vsr_zones AS z
+                          ON ST_Intersects(s.geometry, z.geom)
+                          WHERE
+                          s.datetime::date <= z.date_end AND
+                          s.datetime >= z.date_beg;")
+
   #write ais_data to 'ais_data' table in database
-  dbWriteTable(con, name = 'ais_data_testy', value = DF, append=T)
+  dbWriteTable(con, name = 'ais_data', value = DF, append=T)
   #write ais_SF_data to 'ais_segments' table in database
   dbWriteTable(con, name = 'ais_segments', value = SF_DF, append=T)
+  # write vsr_segs df into 'vsr_ais_segments' table in database
+  dbWriteTable(con, name = 'vsr_ais_segments', value = vsr_segs, append=T)
   #overwrite log_df in database with updated log_df from R environment
   dbWriteTable(con, name = 'log_df_test', value = log_df, overwrite=TRUE)
   #close database connection

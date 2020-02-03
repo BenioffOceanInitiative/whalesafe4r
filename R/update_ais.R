@@ -1,12 +1,7 @@
-source('~/github/s4wr/R/db.R')
-source('~/github/s4wr/R/logfile_funs.R')
-source('~/github/s4wr/R/crawlers.R')
-source('~/github/s4wr/R/readers.R')
-source('~/github/s4wr/R/utils.R')
 
 #' Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs
 #'
-#' @return
+#' @return new_ais_data data.frame
 #' @importFrom RPostgreSQL
 #' @importFrom dplyr select
 #' @importFrom lubridate as_datetime
@@ -14,139 +9,112 @@ source('~/github/s4wr/R/utils.R')
 #' @export
 #'
 #' @examples
-#' cred_path = "/Users/seangoral/github/s4wr/s4w_amazon_rds.yml"
+#' new_ais_data = update_ais_data(con = con, new_links = new_links)
 #'
-update_ais_data <- function(){
-  # Initiate connection
-  con = db_connect()
-  # Create "log" dataframe in R from log_df table in database
-  log = dbGetQuery(con, "SELECT * FROM log_df;") %>%
-    select(-row.names)
-  # Get last read ais.txt file
-  last_read = logfile.last_url(log)
-  # Get list of new links by giving get_ais_urls() funcction last_read
-  new_links = get_ais_urls(last_read)
-  # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
-  log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
+update_ais_data <- function(con, links){
+# Initiate connection ----
+  #con = db_connect()
 
-  #tst = new_links[1:24] #Test 1 day
-  # n_cores = parallel::detectCores()
-  # # Loop through "new_links" and update "log_df"
-  # new_data <- parallel::mclapply(new_links, function(url){
-  #   df <-  tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
-  #                   # ... but if an error occurs, tell me what happened:
-  #                   error=function(e) NULL)
-  #         assign(url, df)
-  # }, mc.cores = 4)
-  # # row bind "new_data"
-  # DF = do.call(rbind,new_data)
-
-  ##################
-
-  n_links <- length(new_links)
-  #pb <- progress_bar$new(total = n_links)
-
-  for (i in 1:n_links) { # i = 1
-    #pb$tick()
-    Sys.sleep(1 / 100)
-
-    url <- new_links[i]
-    #message(glue("{i} of {length(new_links)}: {url}"))
-    df = tryCatch(whale.read(path = url, log_df = log_df, assign_back = TRUE),
-                  # ... but if an error occurs, tell me what happened:
-                  error=function(e) NULL)
-    dbWriteTable(conn = con, name = 'ais_data_test', value = df,append=T)
-  }
-  ##################
-
-  # Loop through "new_links" and create segments spatial data
-  new_sf_data <-  parallel::mclapply(tst, function(url){
-    df <-  tryCatch(shippy_lines(path = url), error=function(e) NULL)
+# Loop through new_links using urls2df() ----
+  new_ais_data <-  parallel::mclapply(links, function(url){
+    df <-  tryCatch(urls2df(path = url), error=function(e) NULL)
     assign(url, df)
-  }, mc.cores = n_cores)
-  # Row bind "new_sf_data"
-  SF_DF = do.call(rbind,new_sf_data)
+  }, mc.cores = detectCores())
 
-  # creates vsr_segs df based on whether ais_segments data in db is within vsr date ranges and intersects the corresponding vsr polygon
-  vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query =
-                            # [PostGIS — Getting intersections the faster way](https://postgis.net/2014/03/14/tip_intersection_faster/)
-                          "SELECT s.name, s.seg_mins, s.seg_km,
-                          s.seg_kmhr, s.seg_knots, s.speed_diff,
-                          s.seg_lt10_rep, s.seg_lt10_calc, s.year,
-                          s.beg_dt, s.beg_lon, s.beg_lat,
-                          s.end_dt, s.end_lon, s.end_lat,
-                          z.gid
-                          , CASE
-                          WHEN
-                          ST_CoveredBy(s.geometry, z.geom)
-                          THEN s.geometry
-                          ELSE
-                          ST_Multi(
-                          ST_Intersection(s.geometry, z.geom)
-                          ) END AS geometry
-                          FROM ais_segments AS s
-                          INNER JOIN vsr_zones AS z
-                          ON ST_Intersects(s.geometry, z.geom)
-                          WHERE
-                          s.datetime::date <= z.date_end AND
-                          s.datetime >= z.date_beg;")
+  # Row bind "new_segs_data" ----
+  new_ais_data = data.table::rbindlist(new_ais_data)
 
-  #write ais_data to 'ais_data' table in database
-  dbWriteTable(con, name = 'ais_data', value = DF, append=T)
-  #write ais_SF_data to 'ais_segments' table in database
-  dbWriteTable(con, name = 'ais_segments', value = SF_DF, append=T)
-  # write vsr_segs df into 'vsr_ais_segments' table in database
-  dbWriteTable(con, name = 'vsr_ais_segments', value = vsr_segs, append=T)
-  #overwrite log_df in database with updated log_df from R environment
-  dbWriteTable(con, name = 'log_df_test', value = log_df, overwrite=TRUE)
-  #close database connection
-  dbDisconnect(con)
+# append ais_data table in database with new_ais_data ----
+  dbWriteTable(con, name = 'test_ais_data', value = new_ais_data, append=TRUE)
 
-  #return(SF_DF)
+# Close database connection ----
+  #dbDisconnect(con)
 
-  }
-
-#brokn...
-update_ais <- function(){
-  # Initiate connection
-  con = db_connect()
-  # Create "log" dataframe in R from log_df table in database
-  log = dbGetQuery(con, "SELECT * FROM log_df;") %>%
-    select(-row.names)
-  # Get last read ais.txt file
-  last_read = logfile.last_url(log)
-  # Get list of new links by giving get_ais_urls() funcction last_read
-  new_links = get_ais_urls(last_read)
-  # UPDATE "log" with "new_links". Create "log_df" in R by binding new_links (unread) with "log" dataframe
-  log_df = rbind(log, data.frame(url = new_links, is_read = F, timestamp = as.numeric(Sys.time())))
-
-  n_links <- length(new_links)
-
-  for (i in 1:n_links) {
-    Sys.sleep(1 / 100)
-    url <- new_links[i]
-    df = tryCatch(whale.reader(path = url, log_df = log_df, assign_back = TRUE),
-                  # ... but if an error occurs, tell me what happened:
-                  error=function(e) NULL)
-
-    dbWriteTable(conn = con, name = 'ais_data_test1', value = df,append=T)
-  }
-
-  #dbWriteTable(con, name = 'log_df_test1', value = log_df, overwrite=TRUE)
-  #dbDisconnect(conn = con)
+  return(new_ais_data)
 }
-# system.time({
-# test=update_ais_data()
-# })
 
-# 24 links with purrr:map
-# user    system  elapsed
-# 19.377   1.103  55.691
 
-# 24 links with parallel::mclapply
-# user    system  elapsed
-# 29.057   4.235  28.198
+#' update_segments_data()
+#'
+#' @param ais_data
+#'
+#' @return new_segs_data "sf" "data.table" "data.frame"
+#' @export
+#'
+#' @examples
+#' new_segs_data = update_segments_data(con = con, ais_data = new_ais_data)
 
-## 65 links
-# user    system    elapsed
-# 46.221   2.608    127.761
+update_segments_data <- function(con, ais_data){
+# Create connection ----
+  #con = db_connect()
+# Run new_ais_data through ais2segments() function ----
+  new_segs_data <- ais2segments(ais_data)
+# Write ais_segs_data to 'ais_segments' table in database ----
+  dbWriteTable(con, name = 'test_ais_segments', value = new_segs_data, append=T)
+
+# Disconnect from database
+  #dbDisconnect(con)
+
+  return(new_segs_data)
+}
+
+# NEEDS TO JUST PERFORM INTERSECTION WITH VSR_ZONES BASED ON DATETIME FOR JUST NEW_SEGS_DATA, AND APPEND TABLE VERSUS DROPPING AND RECREATING...
+update_vsr_segments <- function(con){
+# initiate db connection ----
+  #con=db_connect()
+# get list of tables in database
+  database_tables_list = db_list_tables(con)
+# If vsr_segments is in the database, remove table ----
+  if ('vsr_segments' %in% database_tables_list){
+  dbRemoveTable(con, 'vsr_segments')}
+# Execute table create sql to get new vsr_segments table
+  dbExecute(con,
+            "CREATE TABLE vsr_segments AS
+            SELECT
+            s.name, s.mmsi, s.speed,
+            s.seg_mins, s.seg_km,
+            s.seg_kmhr, s.seg_knots, s.speed_diff,
+            s.year, s.beg_dt, s.end_dt,
+            s.beg_lon, s.beg_lat,
+            s.end_lon, s.end_lat, z.gid,
+            CASE
+            WHEN
+            ST_CoveredBy(s.geometry, z.geom)
+            THEN s.geometry
+            ELSE
+            ST_Multi(
+            ST_Intersection(s.geometry, z.geom)
+            ) END AS geometry
+            FROM ais_segments AS s
+            INNER JOIN vsr_zones AS z
+            ON ST_Intersects(s.geometry, z.geom)
+            WHERE
+            s.datetime::date <= z.date_end AND
+            s.datetime >= z.date_beg;")
+
+  #dbDisconnect(con)
+}
+
+
+# query="SELECT s.name, s.mmsi, s.speed,
+#                           s.seg_mins, s.seg_km,
+# s.seg_kmhr, s.seg_knots, s.speed_diff,
+# s.year, s.beg_dt, s.end_dt,
+# s.beg_lon, s.beg_lat,
+# s.end_lon, s.end_lat, z.gid,
+# CASE
+# WHEN
+# ST_CoveredBy(s.geometry, z.geom)
+# THEN s.geometry
+# ELSE
+# ST_Multi(
+# ST_Intersection(s.geometry, z.geom)
+# ) END AS geometry
+# FROM new_segs_data AS s
+# INNER JOIN vsr_zones AS z
+# ON ST_Intersects(s.geometry, z.geom)
+# WHERE
+# s.datetime::date <= z.date_end AND
+# s.datetime >= z.date_beg;"
+#
+# vsr_segs=sqldf(query,connection=con)

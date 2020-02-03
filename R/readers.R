@@ -64,10 +64,10 @@ get_segment <- function(p1, p2, crs=4326){
 #' @export
 #'
 #' @examples
-#' df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+# df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #'
 
-urls2df <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back = TRUE, ...){
+urls2df <- function(path = NULL){
 
   raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
@@ -75,15 +75,14 @@ urls2df <- function(path = NULL, log_df = NULL, logfile_path = NULL, assign_back
         mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
         select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
   df <- df %>%
-        mutate(date = format(as.Date(df$datetime,format="%Y:%m:%d %H:%M:%S"),"%Y-%m-%d"),url = path, date_modified = lubridate::now())
+        mutate(url = path,
+               date_modified = lubridate::now(tzone = "America/Los_Angeles"))
 
-  df$date = lubridate::as_date(df$datetime)
   #set specific columns as numeric
   cols.num = c("mmsi","speed","lon","lat","heading")
   df[cols.num] = sapply(df[cols.num], as.numeric)
-  #update log_df with files being read by function
-  logfile.update(log_df = log_df, url = path, is_read = TRUE, logfile_path = logfile_path, assign_back = assign_back)
-  # filter lon and lat within certain area
+
+  # filter lon and lat within reasonable area on interest
   df <- df %>%
     filter(lon >= -124, lon <= -114) %>%
     filter(lat >= 31.0, lat <= 36)
@@ -167,12 +166,15 @@ ais2segments <- function(path=NULL, data=NULL){
       st_set_geometry("geometry") %>%
       # add year
       mutate(
-        year = lubridate::year(datetime))
+        year = lubridate::year(datetime)) %>%
+      select(-seg)
   }
+
+  n_cores = detectCores()
 
   d <- d %>%
     mutate(
-      data = map(data, d2pts2lns))
+      data = parallel::mclapply(data, d2pts2lns, mc.cores = 8))
 
   # combine ship name with data and bind across tibbles
   d <- d %>%
@@ -193,8 +195,6 @@ ais2segments <- function(path=NULL, data=NULL){
   # data.table::rbindlist seemingly faster than do.call... ~30 seconds/day
   # d <- do.call(rbind, d$data)
   d <- sf::st_as_sf(data.table::rbindlist(d$data))
-
-  d <- d %>% select(-seg)
 
   return(d)
 }

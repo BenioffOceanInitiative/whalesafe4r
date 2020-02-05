@@ -1,36 +1,4 @@
- con=db_connect()
-#
-# vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query =
-#   # [PostGIS — Getting intersections the faster way](https://postgis.net/2014/03/14/tip_intersection_faster/)
-#   "SELECT s.name,
-#   s.beg_dt, s.beg_lon, s.beg_lat,
-#   s.end_dt, s.end_lon, s.end_lat,
-#   z.gid
-#   , CASE
-#   WHEN
-#   ST_CoveredBy(s.geometry, z.geom)
-#   THEN s.geometry
-#   ELSE
-#   ST_Multi(
-#   ST_Intersection(s.geometry, z.geom)
-#   ) END AS geometry
-#   FROM ais_segments AS s
-#   INNER JOIN vsr_zones AS z
-#   ON ST_Intersects(s.geometry, z.geom)
-#   WHERE
-#   s.datetime::date <= z.date_end AND
-#   s.datetime >= z.date_beg;")
-#
- # vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query ="select * from vsr_segments;")
-
-# vsr_segs <- dbGetQuery(con, "select * from vsr_segments;") %>%
-#   select(-geometry)
-# vsr_segs = tbl(con,"vsr_segments") %>%
-#   select(-geometry)
-# ihs_data = tbl(con, "ihs_data")
-#
-# vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
-
+# con=db_connect()
 
 #' Join VSR segments with IHS Ownership Data
 #'
@@ -41,7 +9,9 @@
 #' @export
 #'
 #' @examples
- .merge_ihs_vsr <- function(){
+#' vsr_segs_ihs = .merge_ihs_vsr()
+
+.merge_ihs_vsr <- function(){
    # Connect to DB
    con=db_connect()
    # Get vsr_gegments data from database
@@ -70,7 +40,7 @@
 #' @export
 #'
 #' @examples
-#' ship_stats = ship_statistics(data = vsr_segs_ihs)
+#'  ship_stats = ship_statistics(data = vsr_segs_ihs)
 #'
 #' ship_stats_1 = ship_statistics()
 
@@ -87,8 +57,8 @@ ship_statistics <- function(data=NULL,...){
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance under 10 knots` = sum(seg_km [speed<=10]),
-    `distance over 10 knots` = sum(seg_km [speed>=10])),
+    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957)),
     by=list(mmsi)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
@@ -100,6 +70,12 @@ ship_statistics <- function(data=NULL,...){
   ship_stats = ship_stats <- ship_stats[order(-grade,mmsi)]
   # set options...
   options(scipen=999, digits=3)
+
+  con = db_connect()
+
+  dbWriteTable(con, "ship_stats", value = ship_stats, overwrite = TRUE)
+
+  dbDisconnect(con)
 
   return(ship_stats)
 }
@@ -114,7 +90,7 @@ ship_statistics <- function(data=NULL,...){
 #' @export
 #'
 #' @examples
-#' operator_stats = operator_statistics(data = vsr_segs_ihs)
+ operator_stats = operator_statistics(data = vsr_segs_ihs)
 #' operator_stats_1 = operator_statistics()
 
 operator_statistics <- function(data=NULL,...) {
@@ -130,8 +106,8 @@ operator_statistics <- function(data=NULL,...) {
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance under 10 knots` = sum(seg_km [speed<=10]),
-    `distance over 10 knots` = sum(seg_km [speed>=10])),
+    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957)),
     by=list(operator)]
   # Assign letter grades
   operator_stats$grade = cut(operator_stats$`compliance score (reported speed)`,
@@ -142,7 +118,13 @@ operator_statistics <- function(data=NULL,...) {
   # order by best grades and furthest travelled
   operator_stats = operator_stats <- operator_stats[order(-grade, -`total distance (km)`)]
   # set options...
-  options(scipen=999, digits=3)
+  options(scipen=999, digits=2)
+
+  con = db_connect()
+
+  dbWriteTable(con, "operator_stats", value = operator_stats, overwrite = TRUE)
+
+  dbDisconnect(con)
 
   return(operator_stats)
 }

@@ -1,4 +1,4 @@
-# con=db_connect()
+ con=db_connect()
 #
 # vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query =
 #   # [PostGIS — Getting intersections the faster way](https://postgis.net/2014/03/14/tip_intersection_faster/)
@@ -23,6 +23,15 @@
 #
  # vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query ="select * from vsr_segments;")
 
+# vsr_segs <- dbGetQuery(con, "select * from vsr_segments;") %>%
+#   select(-geometry)
+# vsr_segs = tbl(con,"vsr_segments") %>%
+#   select(-geometry)
+# ihs_data = tbl(con, "ihs_data")
+#
+# vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
+
+
 #' Join VSR segments with IHS Ownership Data
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
@@ -32,13 +41,17 @@
 #' @export
 #'
 #' @examples
- .merge_ihs_vsr <- function(data){
+ .merge_ihs_vsr <- function(){
    # Connect to DB
    con=db_connect()
+   # Get vsr_gegments data from database
+   vsr_segs = tbl(con,"vsr_segments") %>%
+     select(-geometry)
    # Get IHS data from database
-   ihs_data = dbGetQuery(con, "SELECT * FROM ihs_data;")
- #   %>% filter(gt>=300)
-   vsr_segs_ihs = merge(data,ihs_data, by="mmsi")
+   ihs_data = tbl(con, "ihs_data")
+   #   %>% filter(gt>=300)
+   # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
+   vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
    #vsr_segs_2019 = vsr_segs %>% filter(year==2019)
    # set the data frame as data table
    vsr_segs_ihs = setDT(vsr_segs_ihs)
@@ -57,12 +70,16 @@
 #' @export
 #'
 #' @examples
-#' ship_stats = ship_statistics(data = vsr_segs)
+#' ship_stats = ship_statistics(data = vsr_segs_ihs)
+#'
+#' ship_stats_1 = ship_statistics()
 
-ship_statistics <- function(data){
-
+ship_statistics <- function(data=NULL,...){
+  if (length(data)) {
+    vsr_segs_ihs = data
+  } else vsr_segs_ihs = .merge_ihs_vsr()
   # merge IHS data with vsr_segments data to get operator data----
-  vsr_segs_ihs = .merge_ihs_vsr(data)
+  # vsr_segs_ihs = .merge_ihs_vsr()
   # Produce ship_stata data.table grouped by mmsi ----
   ship_stats = vsr_segs_ihs[, list(
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
@@ -97,12 +114,14 @@ ship_statistics <- function(data){
 #' @export
 #'
 #' @examples
-#' operator_stats = operator_statistics(data=vsr_segs)
+#' operator_stats = operator_statistics(data = vsr_segs_ihs)
+#' operator_stats_1 = operator_statistics()
 
-operator_statistics <- function(data=NULL) {
-
-  # merge IHS data with vsr_segments data to get operator data----
-  vsr_segs_ihs = .merge_ihs_vsr(data)
+operator_statistics <- function(data=NULL,...) {
+  # if vsr_segments data is given, use it, else use .merge_ihs_vsr function to generate data from the database
+  if (length(data)) {
+    vsr_segs_ihs = data
+  } else vsr_segs_ihs = .merge_ihs_vsr()
 
   # Produce ship_stata data.table grouped by mmsi ----
   operator_stats = vsr_segs_ihs[, list(

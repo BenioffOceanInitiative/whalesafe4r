@@ -21,10 +21,34 @@
 #   s.datetime::date <= z.date_end AND
 #   s.datetime >= z.date_beg;")
 #
-# vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query ="select * from vsr_ais_segments;")
+ # vsr_segs <- sf::st_read(dsn = con, EWKB = TRUE, query ="select * from vsr_segments;")
 
+#' Join VSR segments with IHS Ownership Data
+#'
+#' @param data 'vsr_ais_segments' (table from the postgres database)
+#'
+#' @return vsr_segs_ihs (merged dataframe with VSR segments and ihs data)
+#' @importFrom RpostgreSQL database connect
+#' @export
+#'
+#' @examples
+ .merge_ihs_vsr <- function(data){
+   # Connect to DB
+   con=db_connect()
+   # Get IHS data from database
+   ihs_data = dbGetQuery(con, "SELECT * FROM ihs_data;")
+ #   %>% filter(gt>=300)
+   vsr_segs_ihs = merge(data,ihs_data, by="mmsi")
+   #vsr_segs_2019 = vsr_segs %>% filter(year==2019)
+   # set the data frame as data table
+   vsr_segs_ihs = setDT(vsr_segs_ihs)
+   # Disconnect from DB
+   dbDisconnect(con)
 
-#' Ship Compiance Statistics Function
+ return(vsr_segs_ihs)
+ }
+
+#' Ship Cooperation Statistics Function
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
@@ -33,28 +57,73 @@
 #' @export
 #'
 #' @examples
-#' df = ship_statistics(data = vsr_segs)
+#' ship_stats = ship_statistics(data = vsr_segs)
 
-ship_statistics <- function(data=NULL){
+ship_statistics <- function(data){
 
-  ship_stats = setDT(data)  # set the data frame as data table
-
-  ship_stats = ship_stats[, list(
-    `compliance score (reported speed)` = (sum(seg_km [seg_lt10_rep==TRUE])/sum(seg_km))*100,
-    `compliance score (calculated speed)` = (sum(seg_km [seg_lt10_calc==TRUE])/sum(seg_km))*100,
+  # merge IHS data with vsr_segments data to get operator data----
+  vsr_segs_ihs = .merge_ihs_vsr(data)
+  # Produce ship_stata data.table grouped by mmsi ----
+  ship_stats = vsr_segs_ihs[, list(
+    `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
+    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance under 10 knots` = sum(seg_km [seg_lt10_rep==TRUE]),
-    `distance over 10 knots` = sum(seg_km [seg_lt10_rep==FALSE]),
-    good_segs_count = sum(seg_lt10_rep==TRUE),
-    bad_segs_count = sum(seg_lt10_rep==FALSE)),
-    by=list(name)]
-
-  ship_stats = ship_stats <- ship_stats[order(-`compliance score (reported speed)`, -`total distance (nautcal miles)`)]
-
+    `distance under 10 knots` = sum(seg_km [speed<=10]),
+    `distance over 10 knots` = sum(seg_km [speed>=10])),
+    by=list(mmsi)]
+  # Assign letter grades for 'cooperation' ----
+  ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
+                      breaks = c(0, 60, 70, 80, 90, 99, 100),
+                      labels = c("F", "D", "C", "B", "A", "A+"),
+                      right = FALSE,
+                      include.lowest = TRUE)
+  # order ship_stats data.table ----
+  ship_stats = ship_stats <- ship_stats[order(-grade,mmsi)]
+  # set options...
   options(scipen=999, digits=3)
 
-
   return(ship_stats)
+}
+
+
+#' Operator Cooperation Statistics Function
+#'
+#' @param data 'vsr_ais_segments' (table from the postgres database)
+#'
+#' @return 'operator_stats' (summary statistics for each "operator")
+#' @importFrom data.table for data frame summary stats and ordering
+#' @export
+#'
+#' @examples
+#' operator_stats = operator_statistics(data=vsr_segs)
+
+operator_statistics <- function(data=NULL) {
+
+  # merge IHS data with vsr_segments data to get operator data----
+  vsr_segs_ihs = .merge_ihs_vsr(data)
+
+  # Produce ship_stata data.table grouped by mmsi ----
+  operator_stats = vsr_segs_ihs[, list(
+    `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
+    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
+    `total distance (km)` = sum(seg_km),
+    `total distance (nautcal miles)` = sum(seg_km*0.539957),
+    #`average distance` = mean(seg_km),
+    `distance under 10 knots` = sum(seg_km [speed<=10]),
+    `distance over 10 knots` = sum(seg_km [speed>=10])),
+    by=list(operator)]
+  # Assign letter grades
+  operator_stats$grade = cut(operator_stats$`compliance score (reported speed)`,
+                         breaks = c(0, 60, 70, 80, 90, 99, 100),
+                         labels = c("F", "D", "C", "B", "A", "A+"),
+                         right = FALSE,
+                         include.lowest = TRUE)
+  # order by best grades and furthest travelled
+  operator_stats = operator_stats <- operator_stats[order(-grade, -`total distance (km)`)]
+  # set options...
+  options(scipen=999, digits=3)
+
+  return(operator_stats)
 }

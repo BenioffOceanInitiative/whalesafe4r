@@ -166,7 +166,7 @@ ais2segments <- function(path=NULL, data=NULL){
       st_set_geometry("geometry") %>%
       # add year
       mutate(
-        year = lubridate::year(datetime)) %>%
+        year = format(as.Date(datetime, format="%Y/%m/%d"),"%Y")) %>%
       select(-seg)
   }
 

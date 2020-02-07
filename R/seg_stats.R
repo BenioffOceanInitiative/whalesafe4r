@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-#' vsr_segs_ihs = .merge_ihs_vsr()
+#'  vsr_segs_ihs = .merge_ihs_vsr()
 
 .merge_ihs_vsr <- function(){
    # Connect to DB
@@ -40,16 +40,20 @@
 #' @export
 #'
 #' @examples
-#'  ship_stats = ship_statistics(data = vsr_segs_ihs)
+
+ # ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018)
+ # ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
 #'
 #' ship_stats_1 = ship_statistics()
 
-ship_statistics <- function(data=NULL,...){
+ship_statistics <- function(data=NULL, yr=NULL,...){
   if (length(data)) {
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
-  # merge IHS data with vsr_segments data to get operator data----
-  # vsr_segs_ihs = .merge_ihs_vsr()
+
+  vsr_segs_ihs = vsr_segs_ihs %>% filter(vsr_segs_ihs$year == yr)
+
+  vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi ----
   ship_stats = vsr_segs_ihs[, list(
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
@@ -71,11 +75,11 @@ ship_statistics <- function(data=NULL,...){
   # set options...
   options(scipen=999, digits=3)
 
-  con = db_connect()
-
-  dbWriteTable(con, "ship_stats", value = ship_stats, overwrite = TRUE)
-
-  dbDisconnect(con)
+  # con = db_connect()
+  #
+  # dbWriteTable(con, "ship_stats", value = ship_stats, overwrite = TRUE)
+  #
+  # dbDisconnect(con)
 
   return(ship_stats)
 }
@@ -90,16 +94,23 @@ ship_statistics <- function(data=NULL,...){
 #' @export
 #'
 #' @examples
-#' operator_stats = operator_statistics(data = vsr_segs_ihs)
-#' operator_stats_1 = operator_statistics()
+ # operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
+ # operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
+ # operator_stats_scratch_2018 = operator_statistics(yr=2018)
+ #
+ # operator_stats_scratch_2019 = operator_statistics(yr=2019)
 
-operator_statistics <- function(data=NULL,...) {
+
+operator_statistics <- function(data=NULL,yr=NULL,...) {
   # if vsr_segments data is given, use it, else use .merge_ihs_vsr function to generate data from the database
   if (length(data)) {
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
 
-  # Produce ship_stata data.table grouped by mmsi ----
+  vsr_segs_ihs = vsr_segs_ihs %>% filter(vsr_segs_ihs$year == yr)
+
+  vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
+  # Produce ship_stata data.table grouped by operator ----
   operator_stats = vsr_segs_ihs[, list(
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
@@ -120,11 +131,11 @@ operator_statistics <- function(data=NULL,...) {
   # set options...
   options(scipen=999, digits=2)
 
-  con = db_connect()
-
-  dbWriteTable(con, "operator_stats", value = operator_stats, overwrite = TRUE)
-
-  dbDisconnect(con)
+  # con = db_connect()
+  #
+  # dbWriteTable(con, "operator_stats", value = operator_stats, overwrite = TRUE)
+  #
+  # dbDisconnect(con)
 
   return(operator_stats)
 }

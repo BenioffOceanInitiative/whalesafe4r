@@ -59,6 +59,7 @@ update_segments_data <- function(con, ais_data){
 }
 
 # NEEDS TO JUST PERFORM INTERSECTION WITH VSR_ZONES BASED ON DATETIME FOR JUST NEW_SEGS_DATA, AND APPEND TABLE VERSUS DROPPING AND RECREATING...
+#' update_vsr_segments(con)
 update_vsr_segments <- function(con){
 # initiate db connection ----
   #con=db_connect()

@@ -1,4 +1,4 @@
-source('~/github/s4wr/R/logfile_funs.R')
+# source('~/github/s4wr/R/logfile_funs.R')
 
 # Date from url handlers ----
 

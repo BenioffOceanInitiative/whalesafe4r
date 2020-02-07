@@ -90,7 +90,7 @@ ship_statistics <- function(data=NULL,...){
 #' @export
 #'
 #' @examples
- operator_stats = operator_statistics(data = vsr_segs_ihs)
+#' operator_stats = operator_statistics(data = vsr_segs_ihs)
 #' operator_stats_1 = operator_statistics()
 
 operator_statistics <- function(data=NULL,...) {

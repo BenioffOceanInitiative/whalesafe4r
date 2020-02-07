@@ -23,5 +23,14 @@ new_segs_data = update_segments_data(con = con, ais_data = new_ais_data)
 # Update vsr_segments table in the database ----
 update_vsr_segments(con = con)
 
+# Merge vsr_segments data with IHS data for summary statistics ----
+vsr_segs_ihs = .merge_ihs_vsr()
+
+# Calculate ship statistics based on individual ship mmsi's and overwrite it to the database ----
+ship_stats = ship_statistics(data = vsr_segs_ihs)
+
+# Calculate operator statistics based on individual ship mmsi's and overwrite it to the database ----
+operator_stats = operator_statistics(data = vsr_segs_ihs)
+
 # Disconnect from database ----
 dbDisconnect(con)

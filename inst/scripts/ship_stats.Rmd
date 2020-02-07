@@ -1,0 +1,57 @@
+---
+title: "Stats_display"
+author: "Sean Goral"
+date: "2/6/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+source('~/github/s4wr/R/db.R')
+#source('~/github/s4wr/R/logfile_funs.R')
+source('~/github/s4wr/R/crawlers.R')
+source('~/github/s4wr/R/readers.R')
+source('~/github/s4wr/R/utils.R')
+```
+
+
+```{r}
+operator_stats = operator_statistics()
+```
+
+```{r}
+library(ggplot2)
+# counts
+theme_set(theme_bw()) 
+g=ggplot(data.frame(operator_stats), aes(x=grade)) +
+  geom_bar() +  theme(plot.title = element_text(hjust = 0.5))+ ggtitle("VSR Cooperation Grade Distribution") + labs(
+       caption="Source: Benioff Ocean Initiative",
+       x="VSR Cooperation grade",
+       y="Count")
+
+g
+```
+
+
+
+```{r}
+
+t=operator_stats %>% 
+  select(operator, grade, "compliance score (reported speed)", "total distance (km)", "total distance (nautcal miles)", "distance (nautcal miles) under 10 knots", "distance (nautcal miles) over 10 knots") %>% 
+  kable(escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) 
+
+t
+```
+ 
+

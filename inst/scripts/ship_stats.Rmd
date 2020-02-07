@@ -22,22 +22,30 @@ source('~/github/s4wr/R/db.R')
 source('~/github/s4wr/R/crawlers.R')
 source('~/github/s4wr/R/readers.R')
 source('~/github/s4wr/R/utils.R')
+source('~/github/s4wr/R/seg_stats.R')
 ```
 
 
 ```{r}
-operator_stats = operator_statistics()
+
+vsr_segs_ihs = .merge_ihs_vsr() 
+
+vsr_segs_2019 = vsr_segs_ihs %>% 
+  filter(vsr_segs_ihs$gt >= 300) %>% filter(beg_dt >= "2019-01-01")
+
+operator_stats_2019 = operator_statistics(data = vsr_segs_2019)
 ```
 
 ```{r}
 library(ggplot2)
 # counts
 theme_set(theme_bw()) 
-g=ggplot(data.frame(operator_stats), aes(x=grade)) +
-  geom_bar() +  theme(plot.title = element_text(hjust = 0.5))+ ggtitle("VSR Cooperation Grade Distribution") + labs(
+g=ggplot(data.frame(operator_stats_2019), aes(x=grade)) +
+  geom_bar(color="black") +  theme(plot.title = element_text(hjust = 0.5))+  geom_text(stat='count', aes(label=..count..), color="white", position = position_stack(vjust = 0.5),size=4, show.legend = FALSE) + ggtitle("VSR Cooperation Grade Distribution (2019)") + labs(
        caption="Source: Benioff Ocean Initiative",
-       x="VSR Cooperation grade",
-       y="Count")
+       x="VSR Cooperation Grade",
+       y="Count")   
+
 
 g
 ```
@@ -46,8 +54,14 @@ g
 
 ```{r}
 
-t=operator_stats %>% 
-  select(operator, grade, "compliance score (reported speed)", "total distance (km)", "total distance (nautcal miles)", "distance (nautcal miles) under 10 knots", "distance (nautcal miles) over 10 knots") %>% 
+t = operator_stats %>% 
+  select(operator, 
+         grade, 
+         "compliance score (reported speed)", 
+         "total distance (km)", 
+         "total distance (nautcal miles)", 
+         "distance (nautcal miles) under 10 knots", 
+         "distance (nautcal miles) over 10 knots") %>% 
   kable(escape = F) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "responsive")) 
 

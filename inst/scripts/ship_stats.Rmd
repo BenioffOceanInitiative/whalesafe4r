@@ -14,30 +14,54 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(knitr)
 library(kableExtra)
+library(tidyverse)
+library(leaflet)
+library(RColorBrewer)
+library(maptools)
+library(sf)
+library(rgeos)
+library(dplyr)
+library(shiny)
+library(shinydashboard)
+library(RPostgreSQL)
+library(dbplyr)
+library(lubridate)
+library(units)
+library(data.table)
+library(here)
 ```
 
 ```{r}
-source('~/github/s4wr/R/db.R')
+source('~/github/whalesafe4r/R/db.R')
 #source('~/github/s4wr/R/logfile_funs.R')
-source('~/github/s4wr/R/crawlers.R')
-source('~/github/s4wr/R/readers.R')
-source('~/github/s4wr/R/utils.R')
+source('~/github/whalesafe4r/R/crawlers.R')
+source('~/github/whalesafe4r/R/readers.R')
+source('~/github/whalesafe4r/R/utils.R')
+source('~/github/whalesafe4r/R/seg_stats.R')
 ```
 
 
 ```{r}
-operator_stats = operator_statistics()
+operator_stats = operator_statistics(yr=2019)
 ```
 
 ```{r}
+
+
 library(ggplot2)
 # counts
 theme_set(theme_bw()) 
-g=ggplot(data.frame(operator_stats), aes(x=grade)) +
-  geom_bar() +  theme(plot.title = element_text(hjust = 0.5))+ ggtitle("VSR Cooperation Grade Distribution") + labs(
-       caption="Source: Benioff Ocean Initiative",
-       x="VSR Cooperation grade",
-       y="Count")
+g=ggplot(data.frame(operator_stats_2019), aes(x=grade)) +
+  geom_bar() +  
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("VSR Cooperation Grade Distribution: 2019") + 
+  labs(caption="Source: Benioff Ocean Initiative",
+       x="VSR Cooperation Grade",
+       y="Count") +
+  # geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")
+      geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white")
+
+
 
 g
 ```

@@ -22,7 +22,7 @@
    #   %>% filter(gt>=300)
    # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
    vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
-   #vsr_segs_2019 = vsr_segs %>% filter(year==2019)
+   vsr_segs_ihs$date = as.Date(format(vsr_segs_ihs$beg_dt,"%Y-%m-%d"))
    # set the data frame as data table
    vsr_segs_ihs = setDT(vsr_segs_ihs)
    # Disconnect from DB
@@ -42,7 +42,7 @@
 #' @examples
 
  # ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018)
- # ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
+  ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
 #'
 #' ship_stats_1 = ship_statistics()
 
@@ -56,6 +56,8 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi ----
   ship_stats = vsr_segs_ihs[, list(
+    #datetime = beg_dt,
+    number_of_distinct_trips = length(unique(date)),
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
@@ -63,7 +65,7 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
     #`average distance` = mean(seg_km),
     `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957)),
-    by=list(mmsi)]
+    by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
                       breaks = c(0, 60, 70, 80, 90, 99, 100),
@@ -95,7 +97,7 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
 #'
 #' @examples
  # operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
- # operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
+  operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
  # operator_stats_scratch_2018 = operator_statistics(yr=2018)
  #
  # operator_stats_scratch_2019 = operator_statistics(yr=2019)
@@ -112,6 +114,9 @@ operator_statistics <- function(data=NULL,yr=NULL,...) {
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by operator ----
   operator_stats = vsr_segs_ihs[, list(
+    number_of_distinct_trips = length(unique(date)), 
+    number_of_distinct_mmsi = length(unique(mmsi)),
+    number_of_distinct_names = length(unique(name)),
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),

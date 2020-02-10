@@ -22,6 +22,7 @@
    #   %>% filter(gt>=300)
    # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
    vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
+   # Create 'date' column 
    vsr_segs_ihs$date = as.Date(format(vsr_segs_ihs$beg_dt,"%Y-%m-%d"))
    # set the data frame as data table
    vsr_segs_ihs = setDT(vsr_segs_ihs)
@@ -40,9 +41,9 @@
 #' @export
 #'
 #' @examples
-
- # ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018)
-  ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
+#' ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018)
+#' 
+#' ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
 #'
 #' ship_stats_1 = ship_statistics()
 
@@ -50,11 +51,11 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
   if (length(data)) {
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
-
+  # Filter data by yr (year) input
   vsr_segs_ihs = vsr_segs_ihs %>% filter(vsr_segs_ihs$year == yr)
-
+  # Set data.frame to data.table 
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
-  # Produce ship_stata data.table grouped by mmsi ----
+  # Produce ship_stata data.table grouped by mmsi, name and operator ----
   ship_stats = vsr_segs_ihs[, list(
     #datetime = beg_dt,
     number_of_distinct_trips = length(unique(date)),
@@ -73,7 +74,7 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
                       right = FALSE,
                       include.lowest = TRUE)
   # order ship_stats data.table ----
-  ship_stats = ship_stats <- ship_stats[order(-grade,mmsi)]
+  ship_stats = ship_stats <- ship_stats[order(-grade, -`total distance (nautcal miles)`)]
   # set options...
   options(scipen=999, digits=3)
 

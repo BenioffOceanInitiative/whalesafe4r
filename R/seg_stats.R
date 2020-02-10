@@ -58,14 +58,14 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
   ship_stats = vsr_segs_ihs[, list(
     #datetime = beg_dt,
-    number_of_distinct_trips = length(unique(date)),
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
     `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
-    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957)),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    number_of_distinct_trips = length(unique(date))),
     by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
@@ -97,11 +97,11 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
 #' @export
 #'
 #' @examples
- # operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
-  operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
- # operator_stats_scratch_2018 = operator_statistics(yr=2018)
- #
- # operator_stats_scratch_2019 = operator_statistics(yr=2019)
+#'  operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
+#'  operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
+#'  
+#'  operator_stats_scratch_2018 = operator_statistics(yr=2018)
+#'  operator_stats_scratch_2019 = operator_statistics(yr=2019)
 
 
 operator_statistics <- function(data=NULL,yr=NULL,...) {
@@ -115,16 +115,16 @@ operator_statistics <- function(data=NULL,yr=NULL,...) {
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by operator ----
   operator_stats = vsr_segs_ihs[, list(
-    number_of_distinct_trips = length(unique(date)), 
-    number_of_distinct_mmsi = length(unique(mmsi)),
-    number_of_distinct_names = length(unique(name)),
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
     `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
-    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957)),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    number_of_distinct_trips = length(unique(date)), 
+    number_of_distinct_mmsi = length(unique(mmsi)),
+    number_of_distinct_names = length(unique(name))),
     by=list(operator)]
   # Assign letter grades
   operator_stats$grade = cut(operator_stats$`compliance score (reported speed)`,

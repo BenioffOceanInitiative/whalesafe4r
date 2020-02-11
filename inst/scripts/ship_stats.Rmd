@@ -120,7 +120,7 @@ operator_stats_2019_300_100k=operator_stats_2019 %>%
 
 theme_set(theme_bw()) 
 
-g = ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
+g = ggplot(data.frame(test), aes(x=grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
   ggtitle("VSR Cooperation Grade Distribution: 2019") + 
@@ -132,13 +132,14 @@ g = ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
     theme(plot.title = element_text(size = 16))
 
 g
+
 ```
 
 
 
 ```{r operator stats table}
 
-t=operator_stats_2019 %>% 
+t = operator_stats_2019 %>% 
   select(operator, grade, "compliance score (reported speed)", "total distance (km)", "total distance (nautcal miles)", "distance (nautcal miles) under 10 knots", "distance (nautcal miles) over 10 knots") %>% 
   kable(escape = F) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "responsive")) 
@@ -161,8 +162,8 @@ length(unique(vsr_segs_ihs_filtered$operator))
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
     `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
     `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
@@ -186,7 +187,7 @@ length(unique(vsr_segs_ihs_filtered$operator))
 ```{r, summary stats and percents}
 
 summary_stats = data.table(  
-  under_10_nm=sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`),
+  nm_0_10=sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`),
     nm_10_12=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`),
     nm_12_15=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`),
     nm_over_15=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`))

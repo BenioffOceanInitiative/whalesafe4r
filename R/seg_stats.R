@@ -1,6 +1,5 @@
-# con=db_connect()
 
-#' Join VSR segments with IHS Ownership Data
+# Join VSR segments with IHS Ownership Data ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
@@ -35,7 +34,7 @@
  return(vsr_segs_ihs)
  }
 
-#' Ship Cooperation Statistics Function
+# Ship Cooperation Statistics Function ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
@@ -44,13 +43,13 @@
 #' @export
 #'
 #' @examples
-#' ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018)
+#' ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018, tonnage=300)
 #' 
-#' ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019)
+#' ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019, tonnage=300)
 #'
-#' ship_stats_1 = ship_statistics()
+#' ship_stats_2019_1 = ship_statistics(yr=2019, tonnage=300)
 
-ship_statistics <- function(data=NULL, yr=NULL,...){
+ship_statistics <- function(data=NULL, yr=NULL, tonnage=NULL,...){
   
   if (length(data)) {
     vsr_segs_ihs = data
@@ -58,7 +57,7 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
   
   # Filter data by yr (year) input
   vsr_segs_ihs = vsr_segs_ihs %>% 
-    filter(vsr_segs_ihs$year == yr) 
+    filter(vsr_segs_ihs$year == yr, vsr_segs_ihs$gt >= tonnage)
   # Set data.frame to data.table 
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
@@ -69,10 +68,14 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
+    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
+    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
     number_of_distinct_trips = length(unique(date)),
-    avg_daily_speed = mean(speed),
+    mean_daily_speed = mean(speed),
+    mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
     gt = unique(gt)),
     by=list(mmsi, name, operator, date)]
   # Assign letter grades for 'cooperation' ----
@@ -96,7 +99,7 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
 }
 
 
-#' Operator Cooperation Statistics Function
+# Operator Cooperation Statistics Function ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
@@ -154,3 +157,64 @@ operator_statistics <- function(data=NULL,yr=NULL,tonnage=NULL,...) {
 
   return(operator_stats)
 }
+
+# test function ----
+ship_statistics_noaa <- function(data=NULL, yr=NULL, tonnage=NULL,...){
+  
+  if (length(data)) {
+    vsr_segs_ihs = data
+  } else vsr_segs_ihs = .merge_ihs_vsr()
+  
+  # Filter data by yr (year) input
+  vsr_segs_ihs = vsr_segs_ihs %>% 
+    filter(vsr_segs_ihs$year == yr, vsr_segs_ihs$gt >= tonnage)
+  # Set data.frame to data.table 
+  vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
+  # Produce ship_stata data.table grouped by mmsi, name and operator ----
+  ship_stats = vsr_segs_ihs[, list(
+    #datetime = beg_dt,
+    `compliance score (reported speed)` = (sum(seg_km [speed<=10 & mean(speed)>=10])/sum(seg_km))*100,
+    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
+    `total distance (km)` = sum(seg_km),
+    `total distance (nautcal miles)` = sum(seg_km*0.539957),
+    #`average distance` = mean(seg_km),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
+    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
+    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
+    number_of_distinct_trips = length(unique(date)),
+    mean_daily_speed = mean(speed),
+    mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
+    gt = unique(gt)),
+    by=list(mmsi, name, operator, date)]
+  # Assign letter grades for 'cooperation' ----
+  ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
+                         breaks = c(0, 60, 70, 80, 90, 99, 100),
+                         labels = c("F", "D", "C", "B", "A", "A+"),
+                         right = FALSE,
+                         include.lowest = TRUE)
+  # order ship_stats data.table ----
+  ship_stats = ship_stats <- ship_stats[order(-grade, -`total distance (nautcal miles)`)]
+  # set options...
+  options(scipen=999, digits=3)
+  
+  # con = db_connect()
+  #
+  # dbWriteTable(con, "ship_stats", value = ship_stats, overwrite = TRUE)
+  #
+  # dbDisconnect(con)
+  
+  return(ship_stats)
+}
+
+
+# test= ship_statistics_noaa(data = vsr_segs_ihs, yr=2019, tonnage = 300)
+# 
+# dt2=test[, mean((test$`compliance score (reported speed)`)),by=list(operator)]
+# 
+# test %>% 
+#   group_by(operator) %>% 
+#   summarise(amt = mean(as.numeric(test$`compliance score (reported speed)`),na.rm=TRUE)
+# )
+

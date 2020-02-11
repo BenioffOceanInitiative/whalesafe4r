@@ -10,6 +10,9 @@
 #'
 #' @examples
 #'  vsr_segs_ihs = .merge_ihs_vsr()
+#'  
+#'     user  system elapsed 
+#'     21.183   2.853  44.379
 
 .merge_ihs_vsr <- function(){
    # Connect to DB
@@ -25,7 +28,7 @@
    # Create 'date' column 
    vsr_segs_ihs$date = as.Date(format(vsr_segs_ihs$beg_dt,"%Y-%m-%d"))
    # set the data frame as data table
-   vsr_segs_ihs = setDT(vsr_segs_ihs)
+   # vsr_segs_ihs = setDT(vsr_segs_ihs)
    # Disconnect from DB
    dbDisconnect(con)
 
@@ -52,7 +55,8 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
   # Filter data by yr (year) input
-  vsr_segs_ihs = vsr_segs_ihs %>% filter(vsr_segs_ihs$year == yr)
+  vsr_segs_ihs = vsr_segs_ihs %>% 
+    filter(vsr_segs_ihs$year == yr) 
   # Set data.frame to data.table 
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
@@ -65,7 +69,8 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
     #`average distance` = mean(seg_km),
     `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
-    number_of_distinct_trips = length(unique(date))),
+    number_of_distinct_trips = length(unique(date)),
+    gt = unique(gt)),
     by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
@@ -98,20 +103,21 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
 #'
 #' @examples
 #'  operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
-#'  operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019)
+#'    operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019, tonnage=300)
 #'  
 #'  operator_stats_scratch_2018 = operator_statistics(yr=2018)
 #'  operator_stats_scratch_2019 = operator_statistics(yr=2019)
 
 
-operator_statistics <- function(data=NULL,yr=NULL,...) {
+operator_statistics <- function(data=NULL,yr=NULL,tonnage=NULL,...) {
   # if vsr_segments data is given, use it, else use .merge_ihs_vsr function to generate data from the database
   if (length(data)) {
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
 
-  vsr_segs_ihs = vsr_segs_ihs %>% filter(vsr_segs_ihs$year == yr)
-
+  vsr_segs_ihs = vsr_segs_ihs %>% 
+    filter(vsr_segs_ihs$year == yr, vsr_segs_ihs$gt >= tonnage)
+  
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by operator ----
   operator_stats = vsr_segs_ihs[, list(

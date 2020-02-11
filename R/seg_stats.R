@@ -51,9 +51,11 @@
 #' ship_stats_1 = ship_statistics()
 
 ship_statistics <- function(data=NULL, yr=NULL,...){
+  
   if (length(data)) {
     vsr_segs_ihs = data
   } else vsr_segs_ihs = .merge_ihs_vsr()
+  
   # Filter data by yr (year) input
   vsr_segs_ihs = vsr_segs_ihs %>% 
     filter(vsr_segs_ihs$year == yr) 
@@ -70,8 +72,9 @@ ship_statistics <- function(data=NULL, yr=NULL,...){
     `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
     number_of_distinct_trips = length(unique(date)),
+    avg_daily_speed = mean(speed),
     gt = unique(gt)),
-    by=list(mmsi, name, operator)]
+    by=list(mmsi, name, operator, date)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
                       breaks = c(0, 60, 70, 80, 90, 99, 100),

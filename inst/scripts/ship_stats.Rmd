@@ -3,8 +3,8 @@ title: "Stats_display"
 author: "Sean Goral"
 date: "2/6/2020"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -28,6 +28,7 @@ library(dbplyr)
 library(lubridate)
 library(units)
 library(data.table)
+library(ggplot2)
 library(here)
 ```
 
@@ -40,39 +41,102 @@ source('~/github/whalesafe4r/R/utils.R')
 source('~/github/whalesafe4r/R/seg_stats.R')
 ```
 
-```{r}
+```{r, connection}
+con=db_connect()
 
+ihs_data = dbGetQuery(con, "select * from ihs_data;")
 
-operator_stats_2019 = operator_statistics(data= vsr_segs_ihs, yr=2019) 
+vsr_segs_ihs = .merge_ihs_vsr()
+```
 
-operator_stats_2019_filtered = operator_stats_2019%>% 
-  filter(operator_stats_2019$`total distance (nautcal miles)` >=50)
+```{r, ship and operator stats: 2019}
+ship_stats_2019 = ship_statistics(data= vsr_segs_ihs, yr=2019)
 
+operator_stats_2019 = operator_statistics(data= vsr_segs_ihs, yr=2019, tonnage = 300) 
 
 ```
 
-```{r}
+```{r, mmsi couunts}
+length(unique(ihs_data$mmsi))
+# 4160 mmsi total in IHS data
+length(unique(ihs_data$mmsi[ihs_data$gt>=300]))
+# 4094 mmsi's over 300 gt
 
-library(ggplot2)
-# counts
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments;")
+# 1812 unique mmsi's in vsr_segments database table
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where year = 2019;")
+# 897 unique mmsi's in vsr_segments database table in 2019
+
+length(unique(vsr_segs_ihs$mmsi))
+# 1429 unique mmsi's (merged df) in vsr in 2018 & 2019
+length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019]))
+# 690 unique mmsi's in vsr in 2019
+length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+# 667 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+
+# DOUBLE CHECKIN'
+length(unique(ship_stats_2019$mmsi))
+# 690 unique mmsi's in vsr in 2019
+length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300]))
+# 667 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+
+length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300 & ship_stats_2019$`total distance (km)`>=100]))
+# 535 unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
+
+```
+
+```{r, operator counts}
+
+length(unique(ihs_data$operator))
+# 1095 operators total in IHS data
+length(unique(ihs_data$operator[ihs_data$gt>=300]))
+# 1062 operators over 300 gt
+
+length(unique(vsr_segs_ihs$operator))
+# 464 unique operators in vsr in 2018 & 2019
+
+length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019]))
+# 263 unique mmsi's in vsr in 2019
+
+length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+# 253 unique operators in vsr in 2019 with gross tonnage >= 300
+
+# DOUBLE CHECKIN'
+length(unique(operator_stats_2019$operator))
+# 253 unique operators in vsr in 2019 with gt>=300
+
+length(unique(ship_stats_2019$operator[ship_stats_2019$gt>=300]))
+# 253 unique operators in vsr in 2019 with vessels gt >= 300
+
+length(unique(operator_stats_2019$operator[operator_stats_2019$`total distance (km)`>=100]))
+# 204 operators with over 100 km travelled total
+
+```
+
+```{r operator grades graph}
+
+operator_stats_2019_300_100k=operator_stats_2019 %>% 
+  filter(operator_stats_2019$`total distance (km)`>=100)
+
 theme_set(theme_bw()) 
-g=ggplot(data.frame(operator_stats_2019_filtered), aes(x=grade)) +
+
+g = ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
   ggtitle("VSR Cooperation Grade Distribution: 2019") + 
   labs(caption="Source: Benioff Ocean Initiative",
        x="VSR Cooperation Grade",
        y="Count") +
-  # geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")
-      geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white")
-
+   geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
+      # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
+    theme(plot.title = element_text(size = 16))
 
 g
 ```
 
 
 
-```{r}
+```{r operator stats table}
 
 t=operator_stats_2019 %>% 
   select(operator, grade, "compliance score (reported speed)", "total distance (km)", "total distance (nautcal miles)", "distance (nautcal miles) under 10 knots", "distance (nautcal miles) over 10 knots") %>% 
@@ -81,5 +145,69 @@ t=operator_stats_2019 %>%
 
 t
 ```
- 
+
+
+```{r moving toward grading rubric 2}
+vsr_segs_ihs_filtered <- vsr_segs_ihs %>% 
+    filter(year == 2019, gt >= 300) 
+length(unique(vsr_segs_ihs_filtered$operator))
+  # Set data.frame to data.table 
+  vsr_segs_ihs_filtered = data.table::setDT(vsr_segs_ihs_filtered)
+  # Produce ship_stata data.table grouped by mmsi, name and operator ----
+  ship_stats_filtered = vsr_segs_ihs_filtered[, list(
+    #datetime = beg_dt,
+    `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
+    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
+    `total distance (km)` = sum(seg_km),
+    `total distance (nautcal miles)` = sum(seg_km*0.539957),
+    #`average distance` = mean(seg_km),
+    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
+    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
+    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
+    number_of_distinct_trips = length(unique(date))),
+    by=list(mmsi, name, operator)]
+  # Assign letter grades for 'cooperation' ----
+  ship_stats_filtered$grade = cut(ship_stats_filtered$`compliance score (reported speed)`,
+                      breaks = c(0, 60, 70, 80, 90, 99, 100),
+                      labels = c("F", "D", "C", "B", "A", "A+"),
+                      right = FALSE,
+                      include.lowest = TRUE)
+  # order ship_stats data.table ----
+  ship_stats_filtered <- ship_stats_filtered[order(-grade, -`total distance (nautcal miles)`)]
+  
+  # ship_stats_filtered = ship_stats_filtered %>% 
+  #   filter(ship_stats_filtered$`total distance (km)`>=100)
+  # set options...
+  options(scipen=999, digits=3)
+```
+
+```{r, summary stats and percents}
+
+summary_stats = data.table(  
+  under_10_nm=sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`),
+    nm_10_12=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`),
+    nm_12_15=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`),
+    nm_over_15=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`))
+
+summary_stats_percents = data.table(  
+  under_10_perc=(sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`)),
+  nm_10_12_perc=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`),
+  nm_12_15_perc=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`),
+  nm_over_15_perc=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`))
+
+sum_stats=melt(summary_stats_percents)
+```
+
+```{r, make graphs}
+
+bp = ggplot(sum_stats, aes(x="", y=value, fill=variable))+
+geom_bar(width = 1, stat = "identity") 
+bp
+
+pie = bp + coord_polar("y", start=0)
+pie
+```
+
 

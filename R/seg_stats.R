@@ -132,8 +132,11 @@ operator_statistics <- function(data=NULL,yr=NULL,tonnage=NULL,...) {
     `total distance (km)` = sum(seg_km),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
-    `distance (nautcal miles) under 10 knots` = sum(seg_km [speed<=10]*0.539957),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
+    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
+    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
+    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
+    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
     number_of_distinct_trips = length(unique(date)), 
     number_of_distinct_mmsi = length(unique(mmsi)),
     number_of_distinct_names = length(unique(name))),
@@ -158,6 +161,25 @@ operator_statistics <- function(data=NULL,yr=NULL,tonnage=NULL,...) {
   return(operator_stats)
 }
 
+# summary stats ----
+# operator_stats_2019_100 = operator_stats_2019 %>% filter(operator_stats_2019$`total distance (km)`>=100)
+# operator_stats_2019_100=setDT(operator_stats_2019_100)
+# 
+# sum_stats = operator_stats_2019_100[, list(
+#   total = sum(operator_stats_2019_100$`total distance (nautcal miles)`),
+#   sum_0_10 = sum(operator_stats_2019_100$`distance (nautcal miles) 0-10 knots`),
+#   sum_10_12 = sum(operator_stats_2019_100$`distance (nautcal miles) 10-12 knots`),
+#   sum_12_15 = sum(operator_stats_2019_100$`distance (nautcal miles) 12-15 knots`),
+#   sum_15 = sum(operator_stats_2019_100$`distance (nautcal miles) over 15 knots`)
+# )]
+# 
+# sum_stats_perc = operator_stats_2019_100[, list(
+#   total = sum(operator_stats_2019_100$`total distance (nautcal miles)`),
+#   sum_0_10 = sum(operator_stats_2019_100$`distance (nautcal miles) 0-10 knots`)/sum(operator_stats_2019_100$`total distance (nautcal miles)`),
+#   sum_10_12 = sum(operator_stats_2019_100$`distance (nautcal miles) 10-12 knots`)/sum(operator_stats_2019_100$`total distance (nautcal miles)`),
+#   sum_12_15 = sum(operator_stats_2019_100$`distance (nautcal miles) 12-15 knots`)/sum(operator_stats_2019_100$`total distance (nautcal miles)`),
+#   sum_15 = sum(operator_stats_2019_100$`distance (nautcal miles) over 15 knots`)/sum(operator_stats_2019_100$`total distance (nautcal miles)`)
+# )]
 # test function ----
 ship_statistics_noaa <- function(data=NULL, yr=NULL, tonnage=NULL,...){
   

@@ -50,7 +50,7 @@ vsr_segs_ihs = .merge_ihs_vsr()
 ```
 
 ```{r, ship and operator stats: 2019}
-ship_stats_2019 = ship_statistics(data= vsr_segs_ihs, yr=2019)
+ship_stats_2019 = ship_statistics(data= vsr_segs_ihs, yr=2019, tonnage = 300)
 
 operator_stats_2019 = operator_statistics(data= vsr_segs_ihs, yr=2019, tonnage = 300) 
 
@@ -118,22 +118,48 @@ length(unique(operator_stats_2019$operator[operator_stats_2019$`total distance (
 operator_stats_2019_300_100k=operator_stats_2019 %>% 
   filter(operator_stats_2019$`total distance (km)`>=100)
 
-theme_set(theme_bw()) 
 
-g = ggplot(data.frame(test), aes(x=grade)) +
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi1.png", units="px", width=800, height=800, res=150)
+# insert ggplot code
+theme_set(theme_bw()) 
+ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
-  ggtitle("VSR Cooperation Grade Distribution: 2019") + 
+  ggtitle("Operator VSR Cooperation Grade Distribution: 2019") + 
+  labs(caption="Source: Benioff Ocean Initiative",
+       x="VSR Cooperation Grade",
+       y="Count") +
+  geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
+      # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
+    theme(plot.title = element_text(size = 14))
+dev.off()
+
+g_op
+leaflet(vsr_segments) %>% addTiles() %>% addPolylines()
+```
+
+```{r}
+
+ship_stats_2019_300_100k=ship_stats_2019 %>% 
+  filter(ship_stats_2019$`total distance (km)`>=100)
+
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi2.png", units="px", width=800, height=800, res=150)
+theme_set(theme_bw()) 
+ggplot(data.frame(ship_stats_2019_300_100k), aes(x=grade)) +
+  geom_bar() +  
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("Ship VSR Cooperation Grade Distribution: 2019") + 
   labs(caption="Source: Benioff Ocean Initiative",
        x="VSR Cooperation Grade",
        y="Count") +
    geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
       # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
     theme(plot.title = element_text(size = 16))
-
-g
+dev.off()
+g_ship
 
 ```
+
 
 
 
@@ -155,7 +181,7 @@ length(unique(vsr_segs_ihs_filtered$operator))
   # Set data.frame to data.table 
   vsr_segs_ihs_filtered = data.table::setDT(vsr_segs_ihs_filtered)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
-  ship_stats_filtered = vsr_segs_ihs_filtered[, list(
+  op_stats_filtered = vsr_segs_ihs_filtered[, list(
     #datetime = beg_dt,
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
@@ -168,16 +194,19 @@ length(unique(vsr_segs_ihs_filtered$operator))
     `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
     `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
     number_of_distinct_trips = length(unique(date))),
-    by=list(mmsi, name, operator)]
+    by=list(operator,mmsi)]
   # Assign letter grades for 'cooperation' ----
-  ship_stats_filtered$grade = cut(ship_stats_filtered$`compliance score (reported speed)`,
+  op_stats_filtered$grade = cut(op_stats_filtered$`compliance score (reported speed)`,
                       breaks = c(0, 60, 70, 80, 90, 99, 100),
                       labels = c("F", "D", "C", "B", "A", "A+"),
                       right = FALSE,
                       include.lowest = TRUE)
   # order ship_stats data.table ----
-  ship_stats_filtered <- ship_stats_filtered[order(-grade, -`total distance (nautcal miles)`)]
+  op_stats_filtered <- op_stats_filtered[order(-grade, -`total distance (nautcal miles)`)]
   
+  mmsi_op_count = [, list(
+    
+  )]
   # ship_stats_filtered = ship_stats_filtered %>% 
   #   filter(ship_stats_filtered$`total distance (km)`>=100)
   # set options...
@@ -187,28 +216,65 @@ length(unique(vsr_segs_ihs_filtered$operator))
 ```{r, summary stats and percents}
 
 summary_stats = data.table(  
-  nm_0_10=sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`),
+  nm_0_10=sum(ship_stats_filtered$`distance (nautcal miles) 0-10 knots`),
     nm_10_12=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`),
     nm_12_15=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`),
     nm_over_15=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`))
 
 summary_stats_percents = data.table(  
-  under_10_perc=(sum(ship_stats_filtered$`distance (nautcal miles) under 10 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`)),
-  nm_10_12_perc=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`),
-  nm_12_15_perc=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`),
-  nm_over_15_perc=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_filtered$`total distance (nautcal miles)`))
+  `% Travelled 0-10 kn` = (sum(ship_stats_2019_300_100k$`distance (nautcal miles) 0-10 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100),
+  `% Travelled 10-12 kn`= sum(ship_stats_2019_300_100k$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled 12-15 kn` = sum(ship_stats_2019_300_100k$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled over 15 kn` = sum(ship_stats_2019_300_100k$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100)
 
 sum_stats=melt(summary_stats_percents)
 ```
 
 ```{r, make graphs}
 
+mycols <- c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF")
+  options(scipen=999, digits=3)
+
+p=ggplot(sum_stats, aes(x="", y=value, fill=variable))+
+geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0)+
+    geom_text(aes(label = value), color = "white")+
+  scale_fill_manual(values = mycols) +
+  theme_void()
+p
+
 bp = ggplot(sum_stats, aes(x="", y=value, fill=variable))+
 geom_bar(width = 1, stat = "identity") 
 bp
 
-pie = bp + coord_polar("y", start=0)
+library(ggplot2)
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/pie_g.png", units="px", width=800, height=800, res=150) 
+# Create a basic bar
+ggplot(sum_stats, aes(x="", y=value, fill=variable)) + geom_bar(stat="identity", width=1) + 
+  coord_polar("y", start=0) + geom_text(aes(label = paste0(round(value), "%")), position = position_stack(vjust = 0.5)) + 
+  scale_fill_manual(values=c("palegreen1", "skyblue1", "gold1" ,"coral2")) + 
+  labs(x = NULL, y = NULL, fill = NULL, title = "Summary of VSR cooperation for 2019") + 
+  theme_classic() + theme(axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, color = "#666666")) +  theme(plot.title = element_text(hjust = -0.5)) + theme(plot.title = element_text(size = 16))
+dev.off()
 pie
 ```
 
+```{r}
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/op_count.png", units="px", width=800, height=800, res=150) 
+ggplot(data.frame(operator_stats_2019_300_100k), aes(x=operator_stats_2019_300_100k$number_of_distinct_mmsi)) +
+  geom_bar() +  
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("MMSI's Per Operator: 2019") + 
+  labs(caption="Source: Benioff Ocean Initiative",
+       x="Vessel (MMSI) Count",
+       y="Operator Count") +
+   geom_text(stat='count', aes(label=..count..), vjust=-0.18, color="black")+
+      # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
+    theme(plot.title = element_text(size = 16)) + scale_x_continuous(breaks = scales::pretty_breaks(n = 22)) +
+scale_y_continuous(breaks = scales::pretty_breaks(n = 8))
+dev.off()
+```
 

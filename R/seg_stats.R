@@ -74,10 +74,10 @@ ship_statistics <- function(data=NULL, yr=NULL, tonnage=NULL,...){
     `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
     `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
     number_of_distinct_trips = length(unique(date)),
-    mean_daily_speed = mean(speed),
-    mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
+    # mean_daily_speed = mean(speed),
+    # mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
     gt = unique(gt)),
-    by=list(mmsi, name, operator, date)]
+    by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
                       breaks = c(0, 60, 70, 80, 90, 99, 100),

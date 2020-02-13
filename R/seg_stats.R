@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @examples
-  vsr_segs_ihs = .merge_ihs_vsr()
+#'  vsr_segs_ihs = .merge_ihs_vsr()
 #'  
 #'     user  system elapsed 
 #'     21.183   2.853  44.379

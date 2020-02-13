@@ -44,44 +44,81 @@
 #'
 #' @examples
 #' 
-#' ship_stats = ship_statistics(data = vsr_segs_ihs, date_start = '2018-01-01',date_end = '2019-08-01', tonnage=300)
+#' ship_stats = ship_statistics(data=vsr_segs_ihs ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
 #'
-#' ship_stats_2019_1 = ship_statistics(date_start = '2018-01-01',date_end = '2019-08-01', tonnage=300)
+#' ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-08-01', tonnage=300)
 
-ship_statistics <- function(data=NULL, date_start=NULL, date_end=NULL, tonnage=NULL,...){
+ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
   
-  if (length(data)) {
+  if (length(data)==0 & is.na(date_start) & is.na(date_end)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+  }
+  else if (length(data)==0 & is.na(date_start)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(date <= as.Date(date_end))
+  }
+  else if (length(data)==0 & is.na(date_end)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(date >= as.Date(date_start))
+  }
+  else if (length(data)==0){
+    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = vsr_segs_ihs %>%
+      filter(date >= as.Date(date_start)
+             & date <= as.Date(date_end))
+  }
+  else if (is.na(date_start) & is.na(date_end)){
     vsr_segs_ihs = data
-  } else vsr_segs_ihs = .merge_ihs_vsr()
+  } 
+  else if (is.na(date_start)){
+    vsr_segs_ihs = data
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(date <= as.Date(date_end))
+  } 
+  else if (is.na(date_end)){
+    vsr_segs_ihs = data
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(date >= as.Date(date_start))
+  } 
+  else {
+    vsr_segs_ihs = data
+    vsr_segs_ihs = vsr_segs_ihs %>%
+      filter(date >= as.Date(date_start)
+             & date <= as.Date(date_end))
+  }
   
-  # Filter data by inputs
-  vsr_segs_ihs = vsr_segs_ihs %>% 
-    filter(date >= as.Date(date_start) 
-           & date <= as.Date(date_end), 
-           vsr_segs_ihs$gt >= tonnage)
+  if (is.na(tonnage)){
+    vsr_segs_ihs = vsr_segs_ihs
+  }
+  else{
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(gt>=tonnage)
+  }
   # Set data.frame to data.table 
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
   ship_stats = vsr_segs_ihs[, list(
     #datetime = beg_dt,
-    `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
-    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
-    `total distance (km)` = sum(seg_km),
-    `average speed (knots)` = mean(speed),
-    `average speed calculated (knots)` = mean(seg_knots),
-    `total distance (nautcal miles)` = sum(seg_km*0.539957),
+    `compliance score (reported speed)` = as.numeric((sum(seg_km [speed<=10])/sum(seg_km))*100),
+    `compliance score (calculated speed)` = as.numeric((sum(seg_km [seg_knots<=10])/sum(seg_km))*100),
+    `total distance (km)` = as.numeric(sum(seg_km)),
+    `average speed (knots)` = as.numeric(mean(speed)),
+    `average speed calculated (knots)` = as.numeric(mean(seg_knots)),
+    `total distance (nautcal miles)` = as.numeric(sum(seg_km*0.539957)),
     #`average distance` = mean(seg_km),
-    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
-    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
-    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
-    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
-    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
+    `distance (nautcal miles) over 10 knots` = as.numeric(sum(seg_km [speed>=10]*0.539957)),
+    `distance (nautcal miles) 0-10 knots` = as.numeric(sum(seg_km [speed<=10]*0.539957)),
+    `distance (nautcal miles) 10-12 knots` = as.numeric(sum(seg_km [speed>10 & speed<=12]*0.539957)),
+    `distance (nautcal miles) 12-15 knots` = as.numeric(sum(seg_km [speed>12 & speed<=15]*0.539957)),
+    `distance (nautcal miles) over 15 knots` = as.numeric(sum(seg_km [speed>15]*0.539957)),
     number_of_distinct_trips = length(unique(date)),
     # mean_daily_speed = mean(speed),
     # mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
     gt = unique(gt),
-    `noaa compliance score (reported speed)` = (sum(seg_km [speed<=10 & mean(speed)<=12])/sum(seg_km)*100),
-    `noaa compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10 & mean(seg_knots)<=12])/sum(seg_km))*100),
+    `noaa compliance score (reported speed)` = as.numeric((sum(seg_km [speed<=10 & mean(speed)<=12])/sum(seg_km)*100)),
+    `noaa compliance score (calculated speed)` = as.numeric((sum(seg_km [seg_knots<=10 & mean(seg_knots)<=12])/sum(seg_km))*100)),
     by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
@@ -102,7 +139,7 @@ ship_statistics <- function(data=NULL, date_start=NULL, date_end=NULL, tonnage=N
 
   # con = db_connect()
   #
-  # dbWriteTable(con, "ship_stats", value = ship_stats, overwrite = TRUE)
+  # dbWriteTable(con, "ship_stats_2018_2019", value = ship_stats, overwrite = TRUE)
   #
   # dbDisconnect(con)
 
@@ -119,24 +156,60 @@ ship_statistics <- function(data=NULL, date_start=NULL, date_end=NULL, tonnage=N
 #' @export
 #'
 #' @examples
-#'  operator_stats_2018 = operator_statistics(data = vsr_segs_ihs, yr=2018)
-#'    operator_stats_2019 = operator_statistics(data = vsr_segs_ihs, yr=2019, tonnage=300)
-#'  
-#'  operator_stats_scratch_2018 = operator_statistics(yr=2018)
-#'  operator_stats_scratch_2019 = operator_statistics(yr=2019)
+#' 
+#' operator_stats = operator_statistics(data=vsr_segs_ihs ,date_start = '2018-02-01', date_end = '2019-11-01', tonnage = 300)
+#' 
+#' operator_stats_scratch = operator_statistics(date_start = '2018-01-01', date_end = '2019-12-31', tonnage=300)
 
 
-operator_statistics <- function(data=NULL, date_start=NULL, date_end=NULL, tonnage=NULL,...) {
-  # if vsr_segments data is given, use it, else use .merge_ihs_vsr function to generate data from the database
-  if (length(data)) {
+operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
+
+  if (length(data)==0 & is.na(date_start) & is.na(date_end)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+  }
+  else if (length(data)==0 & is.na(date_start)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+      vsr_segs_ihs = vsr_segs_ihs %>% 
+        filter(date <= as.Date(date_end))
+  }
+  else if (length(data)==0 & is.na(date_end)){
+    vsr_segs_ihs = .merge_ihs_vsr()
+      vsr_segs_ihs = vsr_segs_ihs %>% 
+        filter(date >= as.Date(date_start))
+  }
+  else if (length(data)==0){
+    vsr_segs_ihs = .merge_ihs_vsr()
+      vsr_segs_ihs = vsr_segs_ihs %>%
+        filter(date >= as.Date(date_start)
+             & date <= as.Date(date_end))
+  }
+  else if (is.na(date_start) & is.na(date_end)){
     vsr_segs_ihs = data
-  } else vsr_segs_ihs = .merge_ihs_vsr()
-
-  # Filter data by date start, date end, and gross      tonnage inputs ----
-  vsr_segs_ihs = vsr_segs_ihs %>% 
-    filter(date >= as.Date(date_start) 
-           & date <= as.Date(date_end), 
-           vsr_segs_ihs$gt >= tonnage)
+    } 
+  else if (is.na(date_start)){
+    vsr_segs_ihs = data
+      vsr_segs_ihs = vsr_segs_ihs %>% 
+        filter(date <= as.Date(date_end))
+  } 
+  else if (is.na(date_end)){
+    vsr_segs_ihs = data
+      vsr_segs_ihs = vsr_segs_ihs %>% 
+        filter(date >= as.Date(date_start))
+  } 
+  else {
+    vsr_segs_ihs = data
+      vsr_segs_ihs = vsr_segs_ihs %>%
+        filter(date >= as.Date(date_start)
+           & date <= as.Date(date_end))
+  }
+  
+  if (is.na(tonnage)){
+    vsr_segs_ihs = vsr_segs_ihs
+  }
+  else{
+    vsr_segs_ihs = vsr_segs_ihs %>% 
+      filter(gt>=tonnage)
+  }
   
   vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by operator ----
@@ -163,6 +236,7 @@ operator_statistics <- function(data=NULL, date_start=NULL, date_end=NULL, tonna
                          include.lowest = TRUE)
   # order by best grades and furthest travelled
   operator_stats = operator_stats <- operator_stats[order(-grade, -`total distance (km)`)]
+  
   # set options...
   options(scipen=999, digits=2)
 

@@ -45,7 +45,7 @@
 #' @examples
 #' ship_stats_2018 = ship_statistics(data = vsr_segs_ihs, yr = 2018, tonnage=300)
 #' 
-#' ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019, tonnage=300)
+#'   ship_stats_2019 = ship_statistics(data = vsr_segs_ihs, yr = 2019, tonnage=300)
 #'
 #' ship_stats_2019_1 = ship_statistics(yr=2019, tonnage=300)
 
@@ -66,6 +66,8 @@ ship_statistics <- function(data=NULL, yr=NULL, tonnage=NULL,...){
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
+    `average speed (knots)` = mean(speed),
+    `average speed calculated (knots)` = mean(seg_knots),
     `total distance (nautcal miles)` = sum(seg_km*0.539957),
     #`average distance` = mean(seg_km),
     `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
@@ -76,7 +78,9 @@ ship_statistics <- function(data=NULL, yr=NULL, tonnage=NULL,...){
     number_of_distinct_trips = length(unique(date)),
     # mean_daily_speed = mean(speed),
     # mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
-    gt = unique(gt)),
+    gt = unique(gt),
+    `noaa compliance score (reported speed)` = (sum(seg_km [speed<=10 & mean(speed)<=12])/sum(seg_km)*100),
+    `noaa compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10 & mean(seg_knots)<=12])/sum(seg_km))*100),
     by=list(mmsi, name, operator)]
   # Assign letter grades for 'cooperation' ----
   ship_stats$grade = cut(ship_stats$`compliance score (reported speed)`,
@@ -84,6 +88,12 @@ ship_statistics <- function(data=NULL, yr=NULL, tonnage=NULL,...){
                       labels = c("F", "D", "C", "B", "A", "A+"),
                       right = FALSE,
                       include.lowest = TRUE)
+  
+  ship_stats$noaa_grade = cut(ship_stats$`noaa compliance score (reported speed)`,
+                         breaks = c(0, 10, 25, 50, 75, 100),
+                         labels = c("F", "D", "C", "B", "A"),
+                         right = FALSE,
+                         include.lowest = TRUE)
   # order ship_stats data.table ----
   ship_stats = ship_stats <- ship_stats[order(-grade, -`total distance (nautcal miles)`)]
   # set options...

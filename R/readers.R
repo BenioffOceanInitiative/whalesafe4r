@@ -14,7 +14,7 @@ date.from_filename <- function(fname){
   strptime(as.numeric(sprintf("20%s", str)), "%Y%m%d") %>% as.character()
 }
 
-#' Reformat the timestamp for fractionals
+# Reformat the timestamp for fractionals ----
 date.as_frac <- function(t){
   if(!grepl("\\.", t, perl = TRUE)){
     stringi::stri_replace_last_regex(t, "\\:", ".")
@@ -23,7 +23,7 @@ date.as_frac <- function(t){
   }
 }
 
-#' Build the datestring object
+# Build the datestring object ----
 date.build <- function(ymd = NULL, ts = NULL){
   options(digits.secs = 12)
   if(!grepl("\\.", ts, perl = TRUE)){
@@ -73,17 +73,26 @@ get_segment <- function(p1, p2, crs=4326){
 #' df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #' 
 #' Empty file returns small dummy dataframe with date, filename,and system time
-#' df_oops = urls2df("https://ais.sbarc.org/logs_delimited/2019/191217/AIS_SBARC_191217-00.txt")
+#'  df_oops = urls2df("https://ais.sbarc.org/logs_delimited/2019/191217/AIS_SBARC_191217-00.txt")
 #'
 
 urls2df <- function(path = NULL){
     if (check_url_file_size(path)==0) {
-      df = data.frame("datetime" = as.Date(date.from_filename(path)), "name" = as.character(c('oops','oops')), "ship_type" = as.integer(c(0,0)), "mmsi" = as.numeric(c(000000000, 000000000)), "speed" = as.numeric(c(0,0)), "lon" = as.numeric(c(0,0)), "lat" = as.numeric(c(0,0)), "heading" = as.numeric(c(0,0)), url = path, date_modified = lubridate::now(tzone = "America/Los_Angeles"))
+      df = data.frame("datetime" = as.Date(date.from_filename(path)), 
+                      "name" = c('missing_ais_file','missing_ais_file'), 
+                      "ship_type" = as.integer(c(0,0)), 
+                      "mmsi" = as.numeric(c(00,00)), 
+                      "speed" = as.numeric(c(0,0)), 
+                      "lon" = as.numeric(c(0,0)), 
+                      "lat" = as.numeric(c(0,0)), 
+                      "heading" = as.numeric(c(0,0)), 
+                      url = path, 
+                      date_modified = lubridate::now(tzone = "America/Los_Angeles"))
+    df$name=as.character(df$name)  
     }
   else {
     raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
   
-  # raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
         mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
@@ -117,12 +126,12 @@ urls2df <- function(path = NULL){
 #' create segments from dataframe (data=df)
 #' segs=ais2segments(data = df)
 #' Empty files returns empty df with date, filename, and timestamp
-#' segs_oops = ais2segments(data = df_oops)
+#'  segs_oops = ais2segments(data = df_oops)
 #'
 
 ais2segments <- function(data=NULL){
 
-  if (nrow(data)<=300){
+  if (data$name == 'missing_ais_file'){
     d <- data
     d <- d %>%
       # sort by datetime
@@ -150,7 +159,9 @@ ais2segments <- function(data=NULL){
         # Reported "speed" - (calculated speed) "seg_knots"
         speed_diff    = seg_knots - speed,
         seg_lt10_rep  = if_else(speed <= 10, TRUE, FALSE),
-        seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE))
+        seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE)) %>% 
+      filter(seg_new==0)
+    
     return(d)
   }
   

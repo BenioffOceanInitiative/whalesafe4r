@@ -13,7 +13,7 @@
 #'
 update_ais_data <- function(con, links){
 # Initiate connection ----
-  #con = db_connect()
+  con = db_connect()
 
 # Loop through new_links using urls2df() ----
   new_ais_data <-  parallel::mclapply(links, function(url){
@@ -25,10 +25,10 @@ update_ais_data <- function(con, links){
   new_ais_data = data.table::rbindlist(new_ais_data)
 
 # append ais_data table in database with new_ais_data ----
-  dbWriteTable(con, name = 'test_ais_data', value = new_ais_data, append=TRUE)
+    dbWriteTable(con, name = 'ais_data', value = new_ais_data, append=TRUE)
 
 # Close database connection ----
-  #dbDisconnect(con)
+  dbDisconnect(con)
 
   return(new_ais_data)
 }
@@ -50,7 +50,7 @@ update_segments_data <- function(con, ais_data){
 # Run new_ais_data through ais2segments() function ----
   new_segs_data <- ais2segments(ais_data)
 # Write ais_segs_data to 'ais_segments' table in database ----
-  dbWriteTable(con, name = 'test_ais_segments', value = new_segs_data, append=T)
+  # dbWriteTable(con, name = 'test_ais_segments', value = new_segs_data, append=T)
 
 # Disconnect from database
   #dbDisconnect(con)

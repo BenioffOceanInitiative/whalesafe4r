@@ -1,6 +1,6 @@
 
 # Check file size from url function ----
-file_size_check <- function(path){
+check_url_file_size <- function(path){
     response = httr::HEAD(path)
     file_size=as.numeric(httr::headers(response)[["Content-Length"]])
     return(file_size)
@@ -77,7 +77,7 @@ get_segment <- function(p1, p2, crs=4326){
 #'
 
 urls2df <- function(path = NULL){
-    if (file_size_check(path)==0) {
+    if (check_url_file_size(path)==0) {
       df = data.frame("datetime" = as.Date(date.from_filename(path)), "name" = as.character(c('oops','oops')), "ship_type" = as.integer(c(0,0)), "mmsi" = as.numeric(c(000000000, 000000000)), "speed" = as.numeric(c(0,0)), "lon" = as.numeric(c(0,0)), "lat" = as.numeric(c(0,0)), "heading" = as.numeric(c(0,0)), url = path, date_modified = lubridate::now(tzone = "America/Los_Angeles"))
     }
   else {

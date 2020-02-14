@@ -1,4 +1,10 @@
-# source('~/github/s4wr/R/logfile_funs.R')
+
+# Check file size from url function ----
+file_size_check <- function(path){
+    response = httr::HEAD(path)
+    file_size=as.numeric(httr::headers(response)[["Content-Length"]])
+    return(file_size)
+}
 
 # Date from url handlers ----
 
@@ -64,17 +70,25 @@ get_segment <- function(p1, p2, crs=4326){
 #' @export
 #'
 #' @examples
-# df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#' df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#' 
+#' Empty file returns small dummy dataframe with date, filename,and system time
+#' df_oops = urls2df("https://ais.sbarc.org/logs_delimited/2019/191217/AIS_SBARC_191217-00.txt")
 #'
 
 urls2df <- function(path = NULL){
-
-  raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
+    if (file_size_check(path)==0) {
+      df = data.frame("datetime" = as.Date(date.from_filename(path)), "name" = as.character(c('oops','oops')), "ship_type" = as.integer(c(0,0)), "mmsi" = as.numeric(c(000000000, 000000000)), "speed" = as.numeric(c(0,0)), "lon" = as.numeric(c(0,0)), "lat" = as.numeric(c(0,0)), "heading" = as.numeric(c(0,0)), url = path, date_modified = lubridate::now(tzone = "America/Los_Angeles"))
+    }
+  else {
+    raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
+  
+  # raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
   # clean and parse the df
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
         mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
         select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
-  df <- df %>%
+  df1 <- df %>%
         mutate(url = path,
                date_modified = lubridate::now(tzone = "America/Los_Angeles"))
 
@@ -86,7 +100,7 @@ urls2df <- function(path = NULL){
   df <- df %>%
     filter(lon >= -124, lon <= -114) %>%
     filter(lat >= 31.0, lat <= 36)
-
+}
   return(df)
 }
 
@@ -100,24 +114,49 @@ urls2df <- function(path = NULL){
 #' @export
 #'
 #' @examples
-# system.time({
-#path = "https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt"
-## create segments from url (path=url)
-#   segs=ais2segments(path="https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
-#
-## create segments from dataframe (data=df)
-# segs2 = ais2segments(data = df)
-#  })
-#'
+#' create segments from dataframe (data=df)
+#' segs=ais2segments(data = df)
+#' Empty files returns empty df with date, filename, and timestamp
+#' segs_oops = ais2segments(data = df_oops)
 #'
 
-ais2segments <- function(path=NULL, data=NULL){
+ais2segments <- function(data=NULL){
 
-  if(is.null(data)){
-    d <- urls2df(path)
-  } else if(is.null(path)){
+  if (nrow(data)<=300){
     d <- data
+    d <- d %>%
+      # sort by datetime
+      arrange(datetime) %>%
+      # FILTER to only one point per MINUTE to reduce weird speeds,
+      # TODO: check that does not FILTER A LOT OF SHIP NAMES
+      filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+      # convert to sf points tibble
+      st_as_sf(coords = c("lon", "lat"), crs=4326, remove = F) %>%
+      mutate(
+        # get segment based on previous point
+        speed     = lag(speed),
+        beg_dt    = lag(datetime),
+        end_dt    = datetime,
+        beg_lon   = lag(lon),
+        beg_lat   = lag(lat),
+        end_lon   = lon,
+        end_lat   = lat,
+        seg       = map2(lag(geometry), geometry, get_segment),
+        seg_mins  = (datetime - lag(datetime)) %>% as.double(units = "mins"),
+        seg_km    = map_dbl(seg, get_length_km),
+        seg_kmhr  = seg_km / (seg_mins / 60),
+        seg_knots = seg_kmhr * 0.539957,
+        seg_new   = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
+        # Reported "speed" - (calculated speed) "seg_knots"
+        speed_diff    = seg_knots - speed,
+        seg_lt10_rep  = if_else(speed <= 10, TRUE, FALSE),
+        seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE))
+    return(d)
   }
+  
+  else {
+    d <- data
+   
 
   # library(dplyr)
   # library(tidyr)
@@ -197,4 +236,5 @@ ais2segments <- function(path=NULL, data=NULL){
   d <- sf::st_as_sf(data.table::rbindlist(d$data))
 
   return(d)
+  }
 }

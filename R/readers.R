@@ -1,58 +1,4 @@
 
-# Check file size from url function ----
-check_url_file_size <- function(path){
-    response = httr::HEAD(path)
-    file_size=as.numeric(httr::headers(response)[["Content-Length"]])
-    return(file_size)
-}
-
-# Date from url handlers ----
-
-#' Parse and build the Ymd from the url/filename
-date.from_filename <- function(fname){
-  str <- stringi::stri_extract_all_regex(basename(fname), "[0-9]+(?=\\-)") %>% unlist
-  strptime(as.numeric(sprintf("20%s", str)), "%Y%m%d") %>% as.character()
-}
-
-# Reformat the timestamp for fractionals ----
-date.as_frac <- function(t){
-  if(!grepl("\\.", t, perl = TRUE)){
-    stringi::stri_replace_last_regex(t, "\\:", ".")
-  }else {
-    return(t)
-  }
-}
-
-# Build the datestring object ----
-date.build <- function(ymd = NULL, ts = NULL){
-  options(digits.secs = 12)
-  if(!grepl("\\.", ts, perl = TRUE)){
-    ts <- date.as_frac(ts)
-  }
-  pat <- sprintf("%s %s", ymd, ts)
-  as.POSIXct(pat, "%Y-%m-%d %H:%M:%OS", tz = "UTC")
-}
-
-# Spatial functions ----
-
-get_length_km <- function(segment){
-  # seg <- p$segment[2]
-  if (is.na(segment)) return(NA)
-
-  st_length(segment) %>%
-    set_units("km") %>%
-    drop_units()
-}
-
-get_segment <- function(p1, p2, crs=4326){
-
-  if (any(is.na(p1), is.na(p2))) return(NA)
-
-  st_combine(c(p1, p2)) %>%
-    st_cast("LINESTRING") %>%
-    st_set_crs(crs)
-}
-
 # AIS URL Reader function ----
 
 #' Read AIS text files into data.frame from URL and updates log_df data.frame
@@ -70,15 +16,15 @@ get_segment <- function(p1, p2, crs=4326){
 #' @export
 #'
 #' @examples
-#' df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
+#'  df = urls2df("https://ais.sbarc.org/logs_delimited/2019/190101/AIS_SBARC_190101-00.txt")
 #' 
 #' Empty file returns small dummy dataframe with date, filename,and system time
-#'  df_oops = urls2df("https://ais.sbarc.org/logs_delimited/2019/191217/AIS_SBARC_191217-00.txt")
+#'   df_empty = urls2df("https://ais.sbarc.org/logs_delimited/2019/191217/AIS_SBARC_191217-00.txt")
 #'
 
 urls2df <- function(path = NULL){
     if (check_url_file_size(path)==0) {
-      df = data.frame("datetime" = as.Date(date.from_filename(path)), 
+      df = data.frame("datetime" = as.POSIXct(date.from_filename(path)), 
                       "name" = c('missing_ais_file','missing_ais_file'), 
                       "ship_type" = as.integer(c(0,0)), 
                       "mmsi" = as.numeric(c(00,00)), 
@@ -86,9 +32,11 @@ urls2df <- function(path = NULL){
                       "lon" = as.numeric(c(0,0)), 
                       "lat" = as.numeric(c(0,0)), 
                       "heading" = as.numeric(c(0,0)), 
-                      url = path, 
-                      date_modified = lubridate::now(tzone = "America/Los_Angeles"))
+                      "url" = (path), 
+                      "date_modified" = lubridate::now(tzone = "America/Los_Angeles"))
     df$name=as.character(df$name)  
+    df$url=as.character(df$url)  
+    
     }
   else {
     raw <- read.csv(path, stringsAsFactors = F, sep = ";", header = FALSE, quote = "")
@@ -97,7 +45,7 @@ urls2df <- function(path = NULL){
   df <- dplyr::filter(raw, V6 %in% 1:3) %>%
         mutate(datetime = date.build(ymd = date.from_filename(path), ts = date.as_frac(V1))) %>%
         select(datetime, name = 2, ship_type = 3, mmsi = 8, speed = 11, lon = 13, lat = 14, heading = 16)
-  df1 <- df %>%
+  df <- df %>%
         mutate(url = path,
                date_modified = lubridate::now(tzone = "America/Los_Angeles"))
 
@@ -124,16 +72,35 @@ urls2df <- function(path = NULL){
 #'
 #' @examples
 #' create segments from dataframe (data=df)
-#' segs=ais2segments(data = df)
-#' Empty files returns empty df with date, filename, and timestamp
-#'  segs_oops = ais2segments(data = df_oops)
+#'  segs=ais2segments(data = df)
+#' Empty files returns empty df with date, filename, and timestamp and empty dataframes returns NULL
+#' 
+#' segs_empty = ais2segments(data = df_empty)
 #'
 
 ais2segments <- function(data=NULL){
 
-  if (data$name == 'missing_ais_file'){
-    d <- data
-    d <- d %>%
+  if (data$name == 'missing_ais_file' || length(data)==0){
+    d <- tryCatch(
+      { data },
+      error=function(cond) {
+        message(paste("Data does not seem to exist:"))
+        message("Here's the original error message:")
+        message(cond)
+        # Choose a return value in case of error
+        return(NULL)
+      },
+      warning=function(cond) {
+        message(paste("Data caused a warning:"))
+        message("Here's the original warning message:")
+        message(cond)
+        # Choose a return value in case of warning
+        return(NULL)
+      }
+    )
+    
+    d <- tryCatch({
+      d %>%
       # sort by datetime
       arrange(datetime) %>%
       # FILTER to only one point per MINUTE to reduce weird speeds,
@@ -163,15 +130,26 @@ ais2segments <- function(data=NULL){
       filter(seg_new==0)
     
     return(d)
+    },
+    error=function(cond) {
+      message(paste("Data does not seem to exist:"))
+      message("Here's the original error message:")
+      message(cond)
+      # Choose a return value in case of error
+      return(NULL)
+    },
+    warning=function(cond) {
+      message(paste("Data caused a warning:"))
+      message("Here's the original warning message:")
+      message(cond)
+      # Choose a return value in case of warning
+      return(NULL)
+    }
+    )
   }
   
   else {
-    d <- data
-   
-
-  # library(dplyr)
-  # library(tidyr)
-  # devtools::load_all()
+  d <- data
 
   d <- d %>%
     arrange(name, datetime) %>%
@@ -220,11 +198,9 @@ ais2segments <- function(data=NULL){
       select(-seg)
   }
 
-  n_cores = detectCores()
-
   d <- d %>%
     mutate(
-      data = parallel::mclapply(data, d2pts2lns, mc.cores = 8))
+    data = parallel::mclapply(data, d2pts2lns, mc.cores = detectCores()))
 
   # combine ship name with data and bind across tibbles
   d <- d %>%
@@ -242,8 +218,7 @@ ais2segments <- function(data=NULL){
           add_column(y, name = x, .before = 1))) %>%
     ungroup() %>%
     select(data)
-  # data.table::rbindlist seemingly faster than do.call... ~30 seconds/day
-  # d <- do.call(rbind, d$data)
+
   d <- sf::st_as_sf(data.table::rbindlist(d$data))
 
   return(d)

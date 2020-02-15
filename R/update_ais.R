@@ -13,8 +13,7 @@
 #'
 update_ais_data <- function(con, links){
 # Initiate connection ----
-  con = db_connect()
-
+#
 # Loop through new_links using urls2df() ----
   new_ais_data <-  parallel::mclapply(links, function(url){
     df <-  tryCatch(urls2df(path = url), error=function(e) NULL)
@@ -25,10 +24,10 @@ update_ais_data <- function(con, links){
   new_ais_data = data.table::rbindlist(new_ais_data)
 
 # append ais_data table in database with new_ais_data ----
-    dbWriteTable(con, name = 'ais_data', value = new_ais_data, append=TRUE)
+    # dbWriteTable(con, name = 'ais_data', value = new_ais_data, append=TRUE)
 
 # Close database connection ----
-  dbDisconnect(con)
+  # dbDisconnect(con)
 
   return(new_ais_data)
 }
@@ -50,7 +49,7 @@ update_segments_data <- function(con, ais_data){
 # Run new_ais_data through ais2segments() function ----
   new_segs_data <- ais2segments(ais_data)
 # Write ais_segs_data to 'ais_segments' table in database ----
-  # dbWriteTable(con, name = 'test_ais_segments', value = new_segs_data, append=T)
+#  dbWriteTable(con, name = 'ais_segments', value = new_segs_data, append=T)
 
 # Disconnect from database
   #dbDisconnect(con)
@@ -96,26 +95,3 @@ update_vsr_segments <- function(con){
   #dbDisconnect(con)
 }
 
-
-# query="SELECT s.name, s.mmsi, s.speed,
-#                           s.seg_mins, s.seg_km,
-# s.seg_kmhr, s.seg_knots, s.speed_diff,
-# s.year, s.beg_dt, s.end_dt,
-# s.beg_lon, s.beg_lat,
-# s.end_lon, s.end_lat, z.gid,
-# CASE
-# WHEN
-# ST_CoveredBy(s.geometry, z.geom)
-# THEN s.geometry
-# ELSE
-# ST_Multi(
-# ST_Intersection(s.geometry, z.geom)
-# ) END AS geometry
-# FROM new_segs_data AS s
-# INNER JOIN vsr_zones AS z
-# ON ST_Intersects(s.geometry, z.geom)
-# WHERE
-# s.datetime::date <= z.date_end AND
-# s.datetime >= z.date_beg;"
-#
-# vsr_segs=sqldf(query,connection=con)

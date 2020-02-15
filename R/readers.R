@@ -109,7 +109,6 @@ ais2segments <- function(data=NULL){
       # convert to sf points tibble
       st_as_sf(coords = c("lon", "lat"), crs=4326, remove = F) %>%
       mutate(
-        # get segment based on previous point
         speed     = lag(speed),
         beg_dt    = lag(datetime),
         end_dt    = datetime,
@@ -123,7 +122,6 @@ ais2segments <- function(data=NULL){
         seg_kmhr  = seg_km / (seg_mins / 60),
         seg_knots = seg_kmhr * 0.539957,
         seg_new   = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-        # Reported "speed" - (calculated speed) "seg_knots"
         speed_diff    = seg_knots - speed,
         seg_lt10_rep  = if_else(speed <= 10, TRUE, FALSE),
         seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE)) %>% 
@@ -168,7 +166,6 @@ ais2segments <- function(data=NULL){
       # convert to sf points tibble
       st_as_sf(coords = c("lon", "lat"), crs=4326, remove = F) %>%
       mutate(
-        # get segment based on previous point
         speed     = lag(speed),
         beg_dt    = lag(datetime),
         end_dt    = datetime,
@@ -182,7 +179,6 @@ ais2segments <- function(data=NULL){
         seg_kmhr  = seg_km / (seg_mins / 60),
         seg_knots = seg_kmhr * 0.539957,
         seg_new   = if_else(is.na(seg_mins) | seg_mins > 60, 1, 0),
-        # Reported "speed" - (calculated speed) "seg_knots"
         speed_diff    = seg_knots - speed,
         seg_lt10_rep  = if_else(speed <= 10, TRUE, FALSE),
         seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE)) %>%

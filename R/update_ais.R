@@ -2,15 +2,16 @@
 #' Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs
 #'
 #' @return new_ais_data data.frame
-#' @importFrom RPostgreSQL
+#' @importFrom RPostgreSQL dbDisconnect
 #' @importFrom dplyr select
 #' @importFrom lubridate as_datetime
 #' @importFrom parallel mclapply detectCores
-#' @export
 #'
 #' @examples
 #' new_ais_data = update_ais_data(con = con, new_links = new_links)
 #'
+#' @export
+
 update_ais_data <- function(con, links){
 # Initiate connection ----
 #
@@ -38,10 +39,10 @@ update_ais_data <- function(con, links){
 #' @param ais_data
 #'
 #' @return new_segs_data "sf" "data.table" "data.frame"
-#' @export
 #'
 #' @examples
 #' new_segs_data = update_segments_data(con = con, ais_data = new_ais_data)
+#' @export
 
 update_segments_data <- function(con, ais_data){
 # Create connection ----

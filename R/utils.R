@@ -140,7 +140,7 @@ url.drop_basename <- function(url = NULL, ...){
   url
 }
 
-# Check file size from url function ----
+#' Check file size from url function ---
 #' @param path (url path)
 #' @return size of the file 
 #' @examples

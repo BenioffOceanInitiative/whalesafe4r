@@ -1,10 +1,11 @@
 
-# Join VSR segments with IHS Ownership Data ----
+#' Join VSR segments with IHS Ownership Data 
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
 #' @return vsr_segs_ihs (merged dataframe with VSR segments and ihs data)
-#' @importFrom RpostgreSQL database connect
+#' @importFrom dplyr select tbl 
+#' @importFrom RPostgreSQL dbDisconnect
 #' @export
 #'
 #' @examples
@@ -34,12 +35,12 @@
  return(vsr_segs_ihs)
  }
 
-# Ship Cooperation Statistics Function ----
+#' Ship Cooperation Statistics Function ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
 #' @return 'ship_stats' (ship statistics dataframe)
-#' @importFrom data.table for data frame summary stats and ordering
+#' @importFrom data.table setDT
 #' @export
 #'
 #' @examples
@@ -97,7 +98,7 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
       filter(gt>=tonnage)
   }
   # Set data.frame to data.table 
-  vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
+  vsr_segs_ihs = setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
   ship_stats = vsr_segs_ihs[, list(
     #datetime = beg_dt,
@@ -147,12 +148,12 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
 }
 
 
-# Operator Cooperation Statistics Function ----
+#' Operator Cooperation Statistics Function ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
 #' @return 'operator_stats' (summary statistics for each "operator")
-#' @importFrom data.table for data frame summary stats and ordering
+#' @importFrom data.table setDT
 #' @export
 #'
 #' @examples
@@ -211,7 +212,7 @@ operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=N
       filter(gt>=tonnage)
   }
   
-  vsr_segs_ihs = data.table::setDT(vsr_segs_ihs)
+  vsr_segs_ihs = setDT(vsr_segs_ihs)
   # Produce ship_stata data.table grouped by operator ----
   operator_stats = vsr_segs_ihs[, list(
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,

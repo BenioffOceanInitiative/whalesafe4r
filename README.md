@@ -56,8 +56,11 @@ Readers
 
 1.  [Readers](https://github.com/BenioffOceanInitiative/whalesafe4r/blob/master/R/readers.R)
 
-Reads a URL path into AIS data & constructs a spatial features dataframe from the AIS dataframe.
+Reads a URL path into AIS data ([example](https://ais.sbarc.org/logs_delimited/2018/180101/AIS_SBARC_180101-00.txt)) & constructs a spatial features dataframe from the AIS dataframe.
 
+<p align="center">
+<img width="460" height="300" src="./man/figures/segments.png">
+</p>
 <a name="updaters"/>
 
 Updaters

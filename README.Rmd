@@ -1,5 +1,6 @@
 ---
 output: github_document
+always_allow_html: yes
 ---
 
 ```{r setup, include = FALSE}
@@ -63,7 +64,20 @@ Get a list of URL's from Santa Barbara Amatuer Radio Club and use the Reader and
 ## Readers
 2)  [Readers](https://github.com/BenioffOceanInitiative/whalesafe4r/blob/master/R/readers.R)
 
-Reads a URL path into AIS data & constructs a spatial features dataframe from the AIS dataframe.
+Reads a URL path into AIS data ([example](https://ais.sbarc.org/logs_delimited/2018/180101/AIS_SBARC_180101-00.txt)) & constructs a spatial features dataframe from the AIS dataframe.
+
+```{r, include = FALSE}
+# library(dplyr)
+# library(leaflet)
+# map <- readRDS("~/github/whalesafe4r/data/segs_map.rds")
+# 
+#  map
+```
+
+
+<p align="center">
+  <img width="460" height="300" src="./man/figures/segments.png">
+</p>
 
 <a name="updaters"/>
 

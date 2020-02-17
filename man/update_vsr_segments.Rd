@@ -2,10 +2,16 @@
 % Please edit documentation in R/update_ais.R
 \name{update_vsr_segments}
 \alias{update_vsr_segments}
-\title{update_vsr_segments(con)}
+\title{Update VSR Segments data table in database (long way...)}
 \usage{
 update_vsr_segments(con)
 }
+\arguments{
+\item{con}{Formal class PqConnection}
+}
 \description{
+Update VSR Segments data table in database (long way...)
+}
+\examples{
 update_vsr_segments(con)
 }

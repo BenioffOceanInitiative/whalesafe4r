@@ -59,40 +59,89 @@ update_segments_data <- function(con, ais_data){
 }
 
 # NEEDS TO JUST PERFORM INTERSECTION WITH VSR_ZONES BASED ON DATETIME FOR JUST NEW_SEGS_DATA, AND APPEND TABLE VERSUS DROPPING AND RECREATING...
-#' update_vsr_segments(con)
-update_vsr_segments <- function(con){
-# initiate db connection ----
-  #con=db_connect()
-# get list of tables in database
-  database_tables_list = db_list_tables(con)
-# If vsr_segments is in the database, remove table ----
-  if ('vsr_segments' %in% database_tables_list){
-  dbRemoveTable(con, 'vsr_segments')}
-# Execute table create sql to get new vsr_segments table
-  dbExecute(con,
-            "CREATE TABLE vsr_segments AS
-            SELECT
-            s.name, s.mmsi, s.speed,
-            s.seg_mins, s.seg_km,
-            s.seg_kmhr, s.seg_knots, s.speed_diff,
-            s.year, s.beg_dt, s.end_dt,
-            s.beg_lon, s.beg_lat,
-            s.end_lon, s.end_lat, z.gid,
-            CASE
-            WHEN
-            ST_CoveredBy(s.geometry, z.geom)
-            THEN s.geometry
-            ELSE
-            ST_Multi(
-            ST_Intersection(s.geometry, z.geom)
-            ) END AS geometry
-            FROM ais_segments AS s
-            INNER JOIN vsr_zones AS z
-            ON ST_Intersects(s.geometry, z.geom)
-            WHERE
-            s.datetime::date <= z.date_end AND
-            s.datetime >= z.date_beg;")
 
+#' Update VSR Segments data table in database (long way...)
+#'
+#' @param con Formal class PqConnection
+#'
+#' @importFrom dplyr db_list_tables
+#' @importFrom RSQLite dbExecute dbGetQuery dbRemoveTable
+#' @importFrom RPostgreSQL dbDisconnect
+#'
+#' @examples
+#' update_vsr_segments(con)
+#' @export
+update_vsr_segments <- function(con){
+# initiate db connection 
+  #con=db_connect()
+  query = ("CREATE TABLE vsr_segments AS
+            SELECT
+  s.name, s.mmsi, s.speed,
+  s.seg_mins, s.seg_km,
+  s.seg_kmhr, s.seg_knots, s.speed_diff,
+  s.year, s.beg_dt, s.end_dt,
+  s.beg_lon, s.beg_lat,
+  s.end_lon, s.end_lat, z.gid,
+  CASE
+  WHEN
+  ST_CoveredBy(s.geometry, z.geom)
+  THEN s.geometry
+  ELSE
+  ST_Multi(
+  ST_Intersection(s.geometry, z.geom)
+  ) END AS geometry
+  FROM ais_segments AS s
+  INNER JOIN vsr_zones AS z
+  ON ST_Intersects(s.geometry, z.geom)
+  WHERE
+  s.datetime::date <= z.date_end AND
+  s.datetime >= z.date_beg;")
+  
+  # get list of tables in database
+  database_tables_list = db_list_tables(con)
+  
+  if ('vsr_segments' %!in% database_tables_list || 'ais_segments' %!in% database_tables_list){
+    dbExecute(con, query)
+    
+    dbExecute(con, "CREATE INDEX 
+              vsr_segments_geom_index
+              ON vsr_segments
+              USING GIST (geometry);")
+    
+    dbExecute(con, "CREATE INDEX dt_idx
+              ON vsr_segments (beg_dt, end_dt);")
+    
+    dbExecute(con, "CREATE INDEX vsr_mmsi_idx
+              ON vsr_segments (mmsi);")
+  }
+  
+  else{
+  newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments"))
+  newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments"))
+  }
+  
+# If vsr_segments is in the database, remove table ----
+  if (newest_seg_date$max > newest_vsr_seg_date$max){
+  dbRemoveTable(con, 'vsr_segments')
+# Execute table create sql to get new vsr_segments table
+  dbExecute(con, query)
+  
+  dbExecute(con, "CREATE INDEX 
+                  vsr_segments_geom_index
+                  ON vsr_segments
+                  USING GIST (geometry);")
+  
+  dbExecute(con, "CREATE INDEX dt_idx
+                  ON vsr_segments (beg_dt, end_dt);")
+  
+  dbExecute(con, "CREATE INDEX vsr_mmsi_idx
+                  ON vsr_segments (mmsi);")
+  
+  }
+  else{
+    print("No new segments data at:")
+    print(now(tzone="America/Los_Angeles"))
+  }
   #dbDisconnect(con)
 }
 

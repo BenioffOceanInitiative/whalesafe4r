@@ -1,136 +1,37 @@
-# shipr
 
-## Install Package
+whalesafe4r
+===========
 
-```r
-# if missing package devtools
-install.packages(devtools) 
+<p align="center">
+<img width="460" height="300" src="./man/figures/floaty.gif">
+</p>
+##### Table of Contents
 
-# install this R package
-devtools::install_github("mvisalli/shipr")
+[Installation](#installation)
+[Overview](#overview)
+[Crawlers](#crawlers) [Readers](#readers) [Updaters](#updaters) [Stats](#stats)
+
+The WhaleSafe4r package harvests AIS data located at [this site](https://ais.sbarc.org/), which are collected and maintained by the [Santa Barbara Amateur Radio Club | K6TZ](https://www.sbarc.org/). The data is then written to a postgres database and analyzed in order to generate vessel speed report cards.
+
+<a name="installation"/>
+
+Installation
+------------
+
+You can install the released version of whaletrails from: [Github](https://github.com/BenioffOceanInitiative/whalesafe4r) with:
+
+``` r
+devtools::install_github("BenioffOceanInitiative/whalesafe4r")
 ```
 
-## Use Package
+<a name="overview"/>
 
-- See R package vignette [Basic Ship Reporting • shipr](https://mvisalli.github.io/shipr/articles/intro.html)
-- See [website](http://ecoquants.github.io/ship-cards/) and [code](https://github.com/ecoquants/ship-cards) demonstration of making ship cards using [parameterized](https://bookdown.org/yihui/rmarkdown/parameterized-reports.html) [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/).
+Overview
+--------
 
-## Package Development
+The primary areas our functions address are:
 
-For reference, see:
-
-- cheat sheet: [package development](https://github.com/rstudio/cheatsheets/raw/master/package-development.pdf)
-- book: [R packages](http://r-pkgs.had.co.nz/) by Hadley Wickham
-
-### setup 
-
-Setup the skeleton of needed files in an existing directory:
-
-```r
-devtools::setup()
-```
-
-### functions
-
-Muliple functions can live in a single *.R script inside the `R/` folder:
-
-- [`read.R`](https://github.com/mvisalli/shipr/blob/master/R/read.R):
-
-    - `read_ais_txt()`: Read AIS text file
-  
-- [`analyze.R`](https://github.com/mvisalli/shipr/blob/master/R/analyze.R):
-
-    - `ship_limits()`: Get breakdown of distance and time above/below speed limit
-    
-    - `ship_segments()`: Create line segments with speed for specific ship from AIS data
-
-- [`viz.R`](https://github.com/mvisalli/shipr/blob/master/R/viz.R):
-
-    - `map_ship_limits()`: Interactive map of ship limits
-    
-    - `map_ship_segments()`: Interactive map of ship segments
-
-    - `ship_gauge()`: Show gauge of ship performance
-    
-    - `ship_box()`: Show value box of ship performance
-
-### documentation
-
-Generate the R documentation from roxygen2 comments above the R functions to be placed into the manual folder `/man`:
-
-```r
-devtools::document()
-```
-    
-### data
-
-Use raw data:
-
-```r
-devtools::use_data_raw()
-```
-
-Move data files into `data-raw/`, then `sbais.R` to generate `sbais.csv` and load into `data/` with:
-
-```r
-usethis::use_data(sbais, overwrite = TRUE)
-```
-
-### vignettes
-
-```r
-devtools::use_vignette("intro")
-```
-
-### packages
-
-Create dependencies on packages so these get installed if missing. Updates the DESCRIPTION file:
-
-```r
-usethis::use_package("dplyr")
-usethis::use_package("leaflet")
-usethis::use_package("lubridate")
-usethis::use_package("purrr")
-usethis::use_package("reader")
-usethis::use_package("readr")
-usethis::use_package("sf")
-usethis::use_package("stringr")
-usethis::use_package("units")
-usethis::use_package("yaml")
-usethis::use_package("DBI")
-usethis::use_package("RPostgres")
-usethis::use_package("glue")
-usethis::use_package("here")
-usethis::use_package("xml2")
-```
-
-### website
-
-Build website into `docs/` folder with [`pkgdown`](https://pkgdown.r-lib.org), to be hosted using [Github Pages](https://pages.github.com).
-
-```r
-devtools::document()
-pkgdown::build_site()
-```
-
-Structure reference listing with `inst/_pkgdown.yml` per:
-
-* [Introduction • pkgdown](https://pkgdown.r-lib.org/articles/pkgdown.html#configuration)
-* [`build_reference()` • pkgdown](https://pkgdown.r-lib.org/reference/build_reference.html)
-
-```r
-usethis::use_github_links()
-```
-
-```
-✔ Setting URL field in DESCRIPTION to 'https://github.com/mvisalli/shipr'
-✔ Setting BugReports field in DESCRIPTION to 'https://github.com/mvisalli/shipr/issues'
-```
-
-```r
-usethis::use_news_md()
-```
-
-```
-✔ Writing 'NEWS.md'
-```
+1.  [Crawlers](whalesafe4r/R/crawlers.R)
+2.  [Readers](./R/readers.R)
+3.  [Updaters](./R/update_ais.R)
+4.  [Stats](./R/seg_stats.R)

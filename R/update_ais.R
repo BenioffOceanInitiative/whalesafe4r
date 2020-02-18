@@ -100,7 +100,7 @@ update_vsr_segments <- function(con){
   # get list of tables in database
   database_tables_list = db_list_tables(con)
   
-  if ('vsr_segments' %!in% database_tables_list || 'ais_segments' %!in% database_tables_list){
+  if ('vsr_segments' %!in% database_tables_list){
     dbExecute(con, query)
     
     dbExecute(con, "CREATE INDEX 
@@ -116,12 +116,12 @@ update_vsr_segments <- function(con){
   }
   
   else{
-  newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments"))
-  newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments"))
+  newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments")) %>% .$max
+  newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments")) %>% .$max
   }
   
 # If vsr_segments is in the database, remove table ----
-  if (newest_seg_date$max > newest_vsr_seg_date$max){
+  if (newest_seg_date > newest_vsr_seg_date){
   dbRemoveTable(con, 'vsr_segments')
 # Execute table create sql to get new vsr_segments table
   dbExecute(con, query)

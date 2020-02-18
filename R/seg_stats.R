@@ -9,30 +9,30 @@
 #' @export
 #'
 #' @examples
-#'  vsr_segs_ihs = .merge_ihs_vsr()
+#' vsr_segs_ihs = merge_ihs_vsr()
 #'  
-#'     user  system elapsed 
-#'     21.183   2.853  44.379
 
-.merge_ihs_vsr <- function(){
+merge_ihs_vsr <- function(){
    # Connect to DB
-   con=db_connect()
+   con = db_connect()
+  
    # Get vsr_gegments data from database
    vsr_segs = tbl(con,"vsr_segments") %>%
      select(-geometry)
    # Get IHS data from database
    ihs_data = tbl(con, "ihs_data")
-   #   %>% filter(gt>=300)
-   # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
+
+    # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
    vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
    # Create 'date' column 
    vsr_segs_ihs$date = as.Date(format(vsr_segs_ihs$beg_dt,"%Y-%m-%d"))
+   
+   return(vsr_segs_ihs)
+
    # set the data frame as data table
    # vsr_segs_ihs = setDT(vsr_segs_ihs)
    # Disconnect from DB
    dbDisconnect(con)
-
- return(vsr_segs_ihs)
  }
 
 #' Ship Cooperation Statistics Function ----

@@ -154,7 +154,8 @@ check_url_file_size <- function(path){
   file_size=as.numeric(httr::headers(response)[["Content-Length"]])
   return(file_size)
 }
-#' Not within function
+
+#' 'Not within' function
 #' @export
 '%!in%' <- function(x,y)!('%in%'(x,y))
 

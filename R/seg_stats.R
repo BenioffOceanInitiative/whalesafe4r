@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-#' vsr_segs_ihs = merge_ihs_vsr()
+ vsr_segs_ihs = merge_ihs_vsr()
 #'  
 
 merge_ihs_vsr <- function(){
@@ -52,20 +52,20 @@ merge_ihs_vsr <- function(){
 ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
   
   if (length(data)==0 & is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
   }
   else if (length(data)==0 & is.na(date_start)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
     vsr_segs_ihs = vsr_segs_ihs %>% 
       filter(date <= as.Date(date_end))
   }
   else if (length(data)==0 & is.na(date_end)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
     vsr_segs_ihs = vsr_segs_ihs %>% 
       filter(date >= as.Date(date_start))
   }
   else if (length(data)==0){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
     vsr_segs_ihs = vsr_segs_ihs %>%
       filter(date >= as.Date(date_start)
              & date <= as.Date(date_end))
@@ -155,7 +155,7 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
 #' @return 'operator_stats' (summary statistics for each "operator")
 #' @importFrom data.table setDT
 #' @export
-#'
+#' 
 #' @examples
 #' 
 #' operator_stats = operator_statistics(data=vsr_segs_ihs ,date_start = '2018-02-01', date_end = '2019-11-01', tonnage = 300)
@@ -166,20 +166,20 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
 operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
 
   if (length(data)==0 & is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
   }
   else if (length(data)==0 & is.na(date_start)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
       vsr_segs_ihs = vsr_segs_ihs %>% 
         filter(date <= as.Date(date_end))
   }
   else if (length(data)==0 & is.na(date_end)){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
       vsr_segs_ihs = vsr_segs_ihs %>% 
         filter(date >= as.Date(date_start))
   }
   else if (length(data)==0){
-    vsr_segs_ihs = .merge_ihs_vsr()
+    vsr_segs_ihs = merge_ihs_vsr()
       vsr_segs_ihs = vsr_segs_ihs %>%
         filter(date >= as.Date(date_start)
              & date <= as.Date(date_end))

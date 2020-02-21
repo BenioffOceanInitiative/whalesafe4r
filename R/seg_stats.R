@@ -4,13 +4,15 @@
 #' @param data 'vsr_ais_segments' (table from the postgres database)
 #'
 #' @return vsr_segs_ihs (merged dataframe with VSR segments and ihs data)
-#' @importFrom dplyr select tbl 
 #' @importFrom RPostgreSQL dbDisconnect
 #' @export
 #'
 #' @examples
- vsr_segs_ihs = merge_ihs_vsr()
-#'  
+#system.time({
+  #' vsr_segs_ihs = merge_ihs_vsr()
+# })
+#   user  system elapsed 
+# 21.451   2.850  43.917   
 
 merge_ihs_vsr <- function(){
    # Connect to DB

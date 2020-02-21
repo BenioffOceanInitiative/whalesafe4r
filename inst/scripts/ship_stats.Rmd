@@ -143,18 +143,20 @@ leaflet(vsr_segments) %>% addTiles() %>% addPolylines()
 ship_stats_2019_300_100k=ship_stats_2019 %>% 
   filter(ship_stats_2019$`total distance (km)`>=100)
 
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi2.png", units="px", width=800, height=800, res=150)
-theme_set(theme_bw()) 
-ggplot(data.frame(ship_stats_2019_300_100k), aes(x=grade)) +
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi2.png", units="px", width=1200, height=800, res=150)
+ggplot(data.frame(ship_stats_2019_300_100k), aes(x=noaa_grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
-  ggtitle("Ship VSR Cooperation Grade Distribution: 2019") + 
+    theme(plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Ship VSR Cooperation Grade Distribution: 2019", subtitle = "Modified NOAA Rubric") + 
   labs(caption="Source: Benioff Ocean Initiative",
        x="VSR Cooperation Grade",
        y="Count") +
    geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
       # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
-    theme(plot.title = element_text(size = 16))
+    theme(plot.title = element_text(size = 16))+
+  theme(plot.subtitle = element_text(size = 11))+ 
+  scale_fill_manual(values=scalpal)
 dev.off()
 g_ship
 
@@ -251,7 +253,7 @@ library(ggplot2)
 png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/pie_g.png", units="px", width=800, height=800, res=150) 
 # Create a basic bar
 ggplot(sum_stats, aes(x="", y=value, fill=variable)) + geom_bar(stat="identity", width=1) + 
-  coord_polar("y", start=0) + geom_text(aes(label = paste0(round(value), "%")), position = position_stack(vjust = 0.5)) + 
+  coord_polar("y", start=0) + geom_text(aes(label = paste0(round( ), "%")), position = position_stack(vjust = 0.5)) + 
   scale_fill_manual(values=c("palegreen1", "skyblue1", "gold1" ,"coral2")) + 
   labs(x = NULL, y = NULL, fill = NULL, title = "Summary of VSR cooperation for 2019") + 
   theme_classic() + theme(axis.line = element_blank(),
@@ -263,14 +265,14 @@ pie
 ```
 
 ```{r}
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/op_count.png", units="px", width=800, height=800, res=150) 
+png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/op_count.png", units="px", width=1400, height=800, res=150) 
 ggplot(data.frame(operator_stats_2019_300_100k), aes(x=operator_stats_2019_300_100k$number_of_distinct_mmsi)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
-  ggtitle("MMSI's Per Operator: 2019") + 
+  ggtitle("Vessels per Operator: 2019") + 
   labs(caption="Source: Benioff Ocean Initiative",
-       x="Vessel (MMSI) Count",
-       y="Operator Count") +
+       x="Number of Vessels (MMSI)",
+       y="Number of Operators") +
    geom_text(stat='count', aes(label=..count..), vjust=-0.18, color="black")+
       # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
     theme(plot.title = element_text(size = 16)) + scale_x_continuous(breaks = scales::pretty_breaks(n = 22)) +

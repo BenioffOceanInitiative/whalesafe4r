@@ -76,26 +76,26 @@ update_vsr_segments <- function(con){
   #con=db_connect()
   query = ("CREATE TABLE vsr_segments AS
             SELECT
-  s.name, s.mmsi, s.speed,
-  s.seg_mins, s.seg_km,
-  s.seg_kmhr, s.seg_knots, s.speed_diff,
-  s.year, s.beg_dt, s.end_dt,
-  s.beg_lon, s.beg_lat,
-  s.end_lon, s.end_lat, z.gid,
-  CASE
-  WHEN
-  ST_CoveredBy(s.geometry, z.geom)
-  THEN s.geometry
-  ELSE
-  ST_Multi(
-  ST_Intersection(s.geometry, z.geom)
-  ) END AS geometry
-  FROM ais_segments AS s
-  INNER JOIN vsr_zones AS z
-  ON ST_Intersects(s.geometry, z.geom)
-  WHERE
-  s.datetime::date <= z.date_end AND
-  s.datetime >= z.date_beg;")
+            s.name, s.mmsi, s.speed,
+            s.seg_mins, s.seg_km,
+            s.seg_kmhr, s.seg_knots, s.speed_diff,
+            s.year, s.beg_dt, s.end_dt,
+            s.beg_lon, s.beg_lat,
+            s.end_lon, s.end_lat, z.gid,
+            CASE
+            WHEN
+            ST_CoveredBy(s.geometry, z.geom)
+            THEN s.geometry
+            ELSE
+            ST_Multi(
+            ST_Intersection(s.geometry, z.geom)
+            ) END AS geometry
+            FROM ais_segments AS s
+            INNER JOIN vsr_zones AS z
+            ON ST_Intersects(s.geometry, z.geom)
+            WHERE
+            s.datetime::date <= z.date_end AND
+            s.datetime >= z.date_beg;")
   
   # get list of tables in database
   database_tables_list = db_list_tables(con)
@@ -138,6 +138,7 @@ update_vsr_segments <- function(con){
                   ON vsr_segments (mmsi);")
   
   }
+  
   else{
     print("No new segments data at:")
     print(now(tzone="America/Los_Angeles"))

@@ -17,5 +17,4 @@ Join VSR segments with IHS Ownership Data
 }
 \examples{
 vsr_segs_ihs = merge_ihs_vsr()
- 
 }

@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 library(kableExtra)
 library(tidyverse)
@@ -21,8 +21,6 @@ library(maptools)
 library(sf)
 library(rgeos)
 library(dplyr)
-library(shiny)
-library(shinydashboard)
 library(RPostgreSQL)
 library(dbplyr)
 library(lubridate)
@@ -32,9 +30,9 @@ library(ggplot2)
 library(here)
 ```
 
+# Source R files
 ```{r}
 source('~/github/whalesafe4r/R/db.R')
-#source('~/github/s4wr/R/logfile_funs.R')
 source('~/github/whalesafe4r/R/crawlers.R')
 source('~/github/whalesafe4r/R/readers.R')
 source('~/github/whalesafe4r/R/utils.R')
@@ -46,83 +44,90 @@ con=db_connect()
 
 ihs_data = dbGetQuery(con, "select * from ihs_data;")
 
-vsr_segs_ihs = .merge_ihs_vsr()
+vsr_segs_ihs = merge_ihs_vsr()
+
 ```
 
 ```{r, ship and operator stats: 2019}
-ship_stats_2019 = ship_statistics(data= vsr_segs_ihs, yr=2019, tonnage = 300)
 
-operator_stats_2019 = operator_statistics(data= vsr_segs_ihs, yr=2019, tonnage = 300) 
+ship_stats_2019 = ship_statistics(data= vsr_segs_ihs, date_start = '2019-01-01', date_end = '2019-12-31', tonnage = 300)
+
+operator_stats_2019 = operator_statistics(data= vsr_segs_ihs, date_start = '2019-01-01', date_end = '2019-12-31', tonnage = 300) 
 
 ```
 
 ```{r, mmsi couunts}
-length(unique(ihs_data$mmsi))
 # 4160 mmsi total in IHS data
-length(unique(ihs_data$mmsi[ihs_data$gt>=300]))
+length(unique(ihs_data$mmsi))
+
 # 4094 mmsi's over 300 gt
+length(unique(ihs_data$mmsi[ihs_data$gt>=300]))
 
-dbGetQuery(con, "select count(distinct mmsi) from vsr_segments;")
 # 1812 unique mmsi's in vsr_segments database table
-dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where year = 2019;")
-# 897 unique mmsi's in vsr_segments database table in 2019
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments;")
 
+# 897 unique mmsi's in vsr_segments database table in 2019
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where year = 2019;")
+
+# 1441 unique mmsi's (merged df) in vsr in 2018 & 2019
 length(unique(vsr_segs_ihs$mmsi))
-# 1429 unique mmsi's (merged df) in vsr in 2018 & 2019
+
+# 706 unique mmsi's in vsr in 2019
 length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019]))
-# 690 unique mmsi's in vsr in 2019
+
+# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
 length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
-# 667 unique mmsi's in vsr in 2019 with gross tonnage >= 300
 
 # DOUBLE CHECKIN'
+# 683 unique mmsi's in vsr in 2019
 length(unique(ship_stats_2019$mmsi))
-# 690 unique mmsi's in vsr in 2019
-length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300]))
-# 667 unique mmsi's in vsr in 2019 with gross tonnage >= 300
 
+# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300]))
+
+# 549 unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
 length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300 & ship_stats_2019$`total distance (km)`>=100]))
-# 535 unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
+
 
 ```
 
 ```{r, operator counts}
-
-length(unique(ihs_data$operator))
 # 1095 operators total in IHS data
-length(unique(ihs_data$operator[ihs_data$gt>=300]))
+length(unique(ihs_data$operator))
+
 # 1062 operators over 300 gt
+length(unique(ihs_data$operator[ihs_data$gt>=300]))
 
+# 467 unique operators in vsr in 2018 & 2019
 length(unique(vsr_segs_ihs$operator))
-# 464 unique operators in vsr in 2018 & 2019
 
+# 267 unique operators in vsr in 2019
 length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019]))
-# 263 unique mmsi's in vsr in 2019
 
+# 257 unique operators in vsr in 2019 with gross tonnage >= 300
 length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
-# 253 unique operators in vsr in 2019 with gross tonnage >= 300
+
 
 # DOUBLE CHECKIN'
+# 257 unique operators in vsr in 2019 with gt>=300
 length(unique(operator_stats_2019$operator))
-# 253 unique operators in vsr in 2019 with gt>=300
 
+# 257 unique operators in vsr in 2019 with vessels gt >= 300
 length(unique(ship_stats_2019$operator[ship_stats_2019$gt>=300]))
-# 253 unique operators in vsr in 2019 with vessels gt >= 300
 
+# 208 operators with over 100 km travelled total
 length(unique(operator_stats_2019$operator[operator_stats_2019$`total distance (km)`>=100]))
-# 204 operators with over 100 km travelled total
 
 ```
 
 ```{r operator grades graph}
 
-operator_stats_2019_300_100k=operator_stats_2019 %>% 
+operator_stats_2019_100k=operator_stats_2019 %>% 
   filter(operator_stats_2019$`total distance (km)`>=100)
 
-
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi1.png", units="px", width=800, height=800, res=150)
-# insert ggplot code
 theme_set(theme_bw()) 
-ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
+
+op_grade <- ggplot(data.frame(operator_stats_2019_100k), aes(x=grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
   ggtitle("Operator VSR Cooperation Grade Distribution: 2019") + 
@@ -132,19 +137,19 @@ ggplot(data.frame(operator_stats_2019_300_100k), aes(x=grade)) +
   geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
       # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
     theme(plot.title = element_text(size = 14))
-dev.off()
 
-g_op
-leaflet(vsr_segments) %>% addTiles() %>% addPolylines()
+op_grade
+
 ```
 
 ```{r}
 
-ship_stats_2019_300_100k=ship_stats_2019 %>% 
+ship_stats_2019_100k=ship_stats_2019 %>% 
   filter(ship_stats_2019$`total distance (km)`>=100)
 
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi2.png", units="px", width=1200, height=800, res=150)
-ggplot(data.frame(ship_stats_2019_300_100k), aes(x=noaa_grade)) +
+# png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/100kHighRes150dpi2.png", units="px", width=1200, height=800, res=150)
+
+ggplot(data.frame(ship_stats_2019_100k), aes(x=noaa_grade)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
     theme(plot.subtitle = element_text(hjust = 0.5)) +
@@ -152,13 +157,9 @@ ggplot(data.frame(ship_stats_2019_300_100k), aes(x=noaa_grade)) +
   labs(caption="Source: Benioff Ocean Initiative",
        x="VSR Cooperation Grade",
        y="Count") +
-   geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
-      # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
-    theme(plot.title = element_text(size = 16))+
-  theme(plot.subtitle = element_text(size = 11))+ 
-  scale_fill_manual(values=scalpal)
-dev.off()
-g_ship
+    geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")
+
+# dev.off()
 
 ```
 
@@ -168,105 +169,47 @@ g_ship
 ```{r operator stats table}
 
 t = operator_stats_2019 %>% 
-  select(operator, grade, "compliance score (reported speed)", "total distance (km)", "total distance (nautcal miles)", "distance (nautcal miles) under 10 knots", "distance (nautcal miles) over 10 knots") %>% 
   kable(escape = F) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "responsive")) 
 
 t
 ```
 
-
-```{r moving toward grading rubric 2}
-vsr_segs_ihs_filtered <- vsr_segs_ihs %>% 
-    filter(year == 2019, gt >= 300) 
-length(unique(vsr_segs_ihs_filtered$operator))
-  # Set data.frame to data.table 
-  vsr_segs_ihs_filtered = data.table::setDT(vsr_segs_ihs_filtered)
-  # Produce ship_stata data.table grouped by mmsi, name and operator ----
-  op_stats_filtered = vsr_segs_ihs_filtered[, list(
-    #datetime = beg_dt,
-    `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
-    `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
-    `total distance (km)` = sum(seg_km),
-    `total distance (nautcal miles)` = sum(seg_km*0.539957),
-    #`average distance` = mean(seg_km),
-    `distance (nautcal miles) over 10 knots` = sum(seg_km [speed>=10]*0.539957),
-    `distance (nautcal miles) 0-10 knots` = sum(seg_km [speed<=10]*0.539957),
-    `distance (nautcal miles) 10-12 knots` = sum(seg_km [speed>10 & speed<=12]*0.539957),
-    `distance (nautcal miles) 12-15 knots` = sum(seg_km [speed>12 & speed<=15]*0.539957),
-    `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
-    number_of_distinct_trips = length(unique(date))),
-    by=list(operator,mmsi)]
-  # Assign letter grades for 'cooperation' ----
-  op_stats_filtered$grade = cut(op_stats_filtered$`compliance score (reported speed)`,
-                      breaks = c(0, 60, 70, 80, 90, 99, 100),
-                      labels = c("F", "D", "C", "B", "A", "A+"),
-                      right = FALSE,
-                      include.lowest = TRUE)
-  # order ship_stats data.table ----
-  op_stats_filtered <- op_stats_filtered[order(-grade, -`total distance (nautcal miles)`)]
-  
-  mmsi_op_count = [, list(
-    
-  )]
-  # ship_stats_filtered = ship_stats_filtered %>% 
-  #   filter(ship_stats_filtered$`total distance (km)`>=100)
-  # set options...
-  options(scipen=999, digits=3)
-```
-
 ```{r, summary stats and percents}
 
 summary_stats = data.table(  
-  nm_0_10=sum(ship_stats_filtered$`distance (nautcal miles) 0-10 knots`),
-    nm_10_12=sum(ship_stats_filtered$`distance (nautcal miles) 10-12 knots`),
-    nm_12_15=sum(ship_stats_filtered$`distance (nautcal miles) 12-15 knots`),
-    nm_over_15=sum(ship_stats_filtered$`distance (nautcal miles) over 15 knots`))
+  nm_0_10=sum(ship_stats_2019$`distance (nautcal miles) 0-10 knots`),
+    nm_10_12=sum(ship_stats_2019$`distance (nautcal miles) 10-12 knots`),
+    nm_12_15=sum(ship_stats_2019$`distance (nautcal miles) 12-15 knots`),
+    nm_over_15=sum(ship_stats_2019$`distance (nautcal miles) over 15 knots`))
 
 summary_stats_percents = data.table(  
-  `% Travelled 0-10 kn` = (sum(ship_stats_2019_300_100k$`distance (nautcal miles) 0-10 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100),
-  `% Travelled 10-12 kn`= sum(ship_stats_2019_300_100k$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100,
-  `% Travelled 12-15 kn` = sum(ship_stats_2019_300_100k$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100,
-  `% Travelled over 15 kn` = sum(ship_stats_2019_300_100k$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_2019_300_100k$`total distance (nautcal miles)`)*100)
+  `% Travelled 0-10 kn` = (sum(ship_stats_2019_100k$`distance (nautcal miles) 0-10 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100),
+  `% Travelled 10-12 kn`= sum(ship_stats_2019_100k$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled 12-15 kn` = sum(ship_stats_2019_100k$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled over 15 kn` = sum(ship_stats_2019_100k$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100)
 
 sum_stats=melt(summary_stats_percents)
 ```
 
-```{r, make graphs}
+```{r, make pie chart}
 
-mycols <- c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF")
-  options(scipen=999, digits=3)
-
-p=ggplot(sum_stats, aes(x="", y=value, fill=variable))+
-geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-    geom_text(aes(label = value), color = "white")+
-  scale_fill_manual(values = mycols) +
-  theme_void()
-p
-
-bp = ggplot(sum_stats, aes(x="", y=value, fill=variable))+
-geom_bar(width = 1, stat = "identity") 
-bp
-
-library(ggplot2)
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/pie_g.png", units="px", width=800, height=800, res=150) 
-# Create a basic bar
-ggplot(sum_stats, aes(x="", y=value, fill=variable)) + geom_bar(stat="identity", width=1) + 
-  coord_polar("y", start=0) + geom_text(aes(label = paste0(round( ), "%")), position = position_stack(vjust = 0.5)) + 
+pie <- ggplot(sum_stats, aes(x="", y=value, fill=variable)) + geom_bar(stat="identity", width=1) + 
+  coord_polar("y", start=0) +
+   geom_text(aes(label = paste0(round(value), "%")), position = position_stack(vjust = 0.5)) +
   scale_fill_manual(values=c("palegreen1", "skyblue1", "gold1" ,"coral2")) + 
   labs(x = NULL, y = NULL, fill = NULL, title = "Summary of VSR cooperation for 2019") + 
   theme_classic() + theme(axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           plot.title = element_text(hjust = 0.5, color = "#666666")) +  theme(plot.title = element_text(hjust = -0.5)) + theme(plot.title = element_text(size = 16))
-dev.off()
+
 pie
 ```
 
 ```{r}
-png("/Users/seangoral/Library/Mobile Documents/com~apple~CloudDocs/_Benioff_SRA_Limited/op_count.png", units="px", width=1400, height=800, res=150) 
-ggplot(data.frame(operator_stats_2019_300_100k), aes(x=operator_stats_2019_300_100k$number_of_distinct_mmsi)) +
+
+ggplot(data.frame(operator_stats_2019_100k), aes(x=operator_stats_2019_100k$number_of_distinct_mmsi)) +
   geom_bar() +  
   theme(plot.title = element_text(hjust = 0.5)) + 
   ggtitle("Vessels per Operator: 2019") + 
@@ -277,6 +220,6 @@ ggplot(data.frame(operator_stats_2019_300_100k), aes(x=operator_stats_2019_300_1
       # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
     theme(plot.title = element_text(size = 16)) + scale_x_continuous(breaks = scales::pretty_breaks(n = 22)) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 8))
-dev.off()
+
 ```
 

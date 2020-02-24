@@ -1,0 +1,263 @@
+---
+title: "Run Through"
+author: "Sean Goral"
+date: "2/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, libraries, include=FALSE}
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(leaflet)
+library(RColorBrewer)
+library(maptools)
+library(sf)
+library(rgeos)
+library(dplyr)
+library(RPostgreSQL)
+library(dbplyr)
+library(lubridate)
+library(units)
+library(data.table)
+library(parallel)
+library(ggplot2)
+library(here)
+```
+
+## Source R files
+```{r, source}
+# Database connection function
+source('~/github/whalesafe4r/R/db.R')
+
+# Crawl https://ais.sbarc.org/logs_delimited/ for URLs
+source('~/github/whalesafe4r/R/crawlers.R')
+
+# Read ais.txt URL into ais_data df and read ais_data df into ais_segs df
+source('~/github/whalesafe4r/R/readers.R')
+
+# 1) Loop through ais.txt URLs to return ais_data
+# 2) Create ais_segments from ais_data
+# 3) Intersect ais_segments and vsr_zones table in the database to create vsr_segments table in he database
+source('~/github/whalesafe4r/R/update_ais.R')
+
+# Utility functions for crawler, date and spatial functions, etc...
+source('~/github/whalesafe4r/R/utils.R')
+
+# Create summary statistics for merged vsr_sements/ihs_data df
+source('~/github/whalesafe4r/R/seg_stats.R')
+```
+
+### Initiate connection
+```{r, connection}
+
+# Must be on UCSB IP address & database credentials for connection to work. 
+# (add to repo s4w_amazon_rds.yml file)
+# (add yml file to your gitignore)
+
+con <- db_connect()
+```
+
+### Get last read URL from ais_data table
+```{r, last read URL}
+
+#Query database to find the 'last read' url from the ais_data table
+last_read_url <- dbGetQuery(con, "SELECT MAX(url) AS last_read_url FROM ais_data;") %>% .$last_read_url
+
+last_read_url
+
+```
+
+### Get list of new links
+```{r, new links}
+# Use last_read_url in the get_ais_urls() function to get all new ais urls
+
+new_links <- get_ais_urls(last_read_url)
+
+new_links
+
+# Example get_ais_urls()
+
+example_path <- "https://ais.sbarc.org/logs_delimited/2019/191110/AIS_SBARC_191110-00.txt"
+
+example_links <- get_ais_urls(example_path)
+
+example_links %>% head() 
+example_links%>% tail()
+```
+
+### Get new_ais_data
+```{r, new_ais_data}
+
+# Use update_ais_data() to loop through 'new_links' and return new_ais_data data.frame
+
+new_ais_data <- update_ais_data(links = new_links)
+
+example_ais_data <- update_ais_data(links = example_links)
+
+example_ais_data_5000 <- example_ais_data %>% 
+  head(5000)
+
+example_ais_data_table <- kable(head(example_ais_data, n = 100L)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+  scroll_box(width = "100%", height = "300px")
+
+example_ais_data_table
+
+ex_ais_data_map <- leaflet(example_ais_data) %>% 
+        addTiles() %>% 
+        addCircles(lat = example_ais_data$lat, lng = example_ais_data$lon) %>% 
+        setView(lng = '-119', lat = '34',zoom = 7)
+
+ex_ais_data_map
+```
+
+### Append ais_data table in database with new_ais_data
+```{r, Append ais_data table}
+
+# Append new_ais_data to ais_data table in the database
+# Appending to ais_data1 for testing
+dbWriteTable(con = con, 
+             name = 'ais_data1', 
+             value = new_ais_data, 
+             append = TRUE)
+```
+
+### Get new_segs_data for global environment
+```{r, new_segs_data}
+
+# Use new_ais_data in the update_segments_data() function to return new_segs_data 
+new_segs_data <- update_segments_data(con = con, 
+                                      ais_data = new_ais_data)
+
+# Use example_ais_data in the update_segments_data() function to return example_segs_data 
+example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data_5000)
+
+# Example Map
+ex_seg_map <- leaflet(example_segs_data) %>% 
+                    setView(lng = '-119', lat = '34',zoom = 7) %>% 
+                    addTiles() %>% 
+                    addPolylines()
+
+ex_seg_map
+```
+
+### Write ais_segs_data to ais_segments table in database
+```{r, Write ais_segs_data to database}
+
+# Append new_segs_data to the database if new_segs_data exists
+write_new_segs_data <- function(data=new_segs_data){
+    if (is.null(new_segs_data)==TRUE){
+     print("Null segments data")
+    } else {
+      dbWriteTable(con = con, 
+                   name = 'ais_segments1', 
+                   value = new_segs_data, 
+                   append = TRUE)
+    }
+  }
+
+# Run it
+write_new_segs_data()
+```
+
+### Update vsr_segments table in the database
+```{r, Update vsr_segments}
+
+# Update vsr_segments on the database side
+update_vsr_segments(con = con)
+
+con <- db_connect()
+vsr_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE, 
+                               query = "SELECT * FROM vsr_segments 
+                                        LIMIT 1000;")
+
+vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE, 
+                               query = "SELECT * FROM vsr_zones;")
+vsr_2019 <- head(vsr_zones,n = 1L)
+
+ex_vsr_seg_map <- leaflet(vsr_segments_ex) %>% 
+  setView(lng = '-119', lat = '34',zoom = 7) %>% 
+  addTiles() %>% 
+  addPolylines(label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, beg_dt, name), group = "segments") %>% 
+  addPolygons(data = vsr_2019, fillColor = 'blue', group = 'vsr') %>%   
+  addLayersControl(overlayGroups = c("segments","vsr"))
+
+ex_vsr_seg_map
+```
+
+### Merge vsr_segments data with IHS data
+```{r, Merge vsr_segments with IHS data}
+
+# Merge vsr_segments with ihs_data from database to return vsr_segs_ihs in global environment. (Takes a little time ~40 seconds)
+system.time({
+vsr_segs_ihs <- merge_ihs_vsr()
+})
+```
+
+### Calculate ship statistics
+```{r, ship statistics} 
+
+# Calculate ship stats for each mmsi using merged df, vsr_segs_ihs
+ship_stats <- ship_statistics(data = vsr_segs_ihs)
+
+ship_stats_2019 <- ship_statistics(data = vsr_segs_ihs,
+                                   date_start = '2019-01-01',
+                                   date_end = '2019-12-31',
+                                   tonnage = 300)
+
+ship_stats_2019_table <- ship_stats_2019 %>% 
+  kable(escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
+  scroll_box(width = "100%", height = "300px")
+
+ship_stats_2019_table
+```
+
+## Overwrite the ship_stats table in the database 
+```{r, ship_stats db write}
+# And overwrite the ship_stats table in the database 
+dbWriteTable(con = con, 
+             name = "ship_stats", 
+             value = ship_stats, 
+             overwrite = TRUE)
+```
+
+### Calculate operator statistics
+```{r, operator statistics} 
+
+# Calculate operator stats for each mmsi 
+operator_stats = operator_statistics(data = vsr_segs_ihs)
+
+operator_stats_2019 = operator_statistics(data = vsr_segs_ihs,
+                                     date_start = '2019-01-01',
+                                     date_end = '2019-12-31',
+                                     tonnage = 300) %>% filter("total distance (km)" >= 100)
+
+operator_stats_2019_table <- operator_stats_2019 %>% 
+  kable(escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
+  scroll_box(width = "100%", height = "300px")
+
+operator_stats_2019_table
+```
+
+## Overwrite the operator_stats table in the database
+```{r, overwrite operator_stats in db}
+# And overwrite the operator_stats table in the database 
+dbWriteTable(con = con, 
+             name = "operator_stats", 
+             value = operator_stats, 
+             overwrite = TRUE)
+```
+
+### Disconnect from database
+```{r, disconnect}
+
+dbDisconnect(con)
+```
+

@@ -28,8 +28,11 @@ library(parallel)
 library(ggplot2)
 library(here)
 ```
+## {.tabset}
 
-## Source R files
+### Source R files or Github Installation 
+
+#### Source or Install
 ```{r, source}
 # Database connection function
 source('~/github/whalesafe4r/R/db.R')
@@ -50,9 +53,13 @@ source('~/github/whalesafe4r/R/utils.R')
 
 # Create summary statistics for merged vsr_sements/ihs_data df
 source('~/github/whalesafe4r/R/seg_stats.R')
+
+#devtools::install_github("BenioffOceanInitiative/whalesafe4r")
 ```
 
-### Initiate connection
+### Initiate Connection & Get AIS URLs
+
+#### Initiate Database Connection
 ```{r, connection}
 
 # Must be on UCSB IP address & database credentials for connection to work. 
@@ -62,7 +69,7 @@ source('~/github/whalesafe4r/R/seg_stats.R')
 con <- db_connect()
 ```
 
-### Get last read URL from ais_data table
+#### Get last read URL from ais_data table
 ```{r, last read URL}
 
 #Query database to find the 'last read' url from the ais_data table
@@ -72,14 +79,17 @@ last_read_url
 
 ```
 
-### Get list of new links
+#### Get List of New Links
 ```{r, new links}
 # Use last_read_url in the get_ais_urls() function to get all new ais urls
 
 new_links <- get_ais_urls(last_read_url)
 
 new_links
+```
 
+#### Example Links
+```{r}
 # Example get_ais_urls()
 
 example_path <- "https://ais.sbarc.org/logs_delimited/2019/191110/AIS_SBARC_191110-00.txt"
@@ -90,7 +100,9 @@ example_links %>% head()
 example_links%>% tail()
 ```
 
-### Get new_ais_data
+### Get New AIS and Segments Data
+
+#### New AIS Data
 ```{r, new_ais_data}
 
 # Use update_ais_data() to loop through 'new_links' and return new_ais_data data.frame
@@ -102,21 +114,9 @@ example_ais_data <- update_ais_data(links = example_links)
 example_ais_data_5000 <- example_ais_data %>% 
   head(5000)
 
-example_ais_data_table <- kable(head(example_ais_data, n = 100L)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
-  scroll_box(width = "100%", height = "300px")
-
-example_ais_data_table
-
-ex_ais_data_map <- leaflet(example_ais_data) %>% 
-        addTiles() %>% 
-        addCircles(lat = example_ais_data$lat, lng = example_ais_data$lon) %>% 
-        setView(lng = '-119', lat = '34',zoom = 7)
-
-ex_ais_data_map
 ```
 
-### Append ais_data table in database with new_ais_data
+#### Append ais_data Table in Database with new_ais_data
 ```{r, Append ais_data table}
 
 # Append new_ais_data to ais_data table in the database
@@ -127,7 +127,7 @@ dbWriteTable(con = con,
              append = TRUE)
 ```
 
-### Get new_segs_data for global environment
+#### Get new_segs_data for global environment
 ```{r, new_segs_data}
 
 # Use new_ais_data in the update_segments_data() function to return new_segs_data 
@@ -137,16 +137,9 @@ new_segs_data <- update_segments_data(con = con,
 # Use example_ais_data in the update_segments_data() function to return example_segs_data 
 example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data_5000)
 
-# Example Map
-ex_seg_map <- leaflet(example_segs_data) %>% 
-                    setView(lng = '-119', lat = '34',zoom = 7) %>% 
-                    addTiles() %>% 
-                    addPolylines()
-
-ex_seg_map
 ```
 
-### Write ais_segs_data to ais_segments table in database
+#### Write ais_segs_data to ais_segments Table in Database
 ```{r, Write ais_segs_data to database}
 
 # Append new_segs_data to the database if new_segs_data exists
@@ -165,21 +158,28 @@ write_new_segs_data <- function(data=new_segs_data){
 write_new_segs_data()
 ```
 
-### Update vsr_segments table in the database
+### Update vsr_segments Table in the Database
+
+#### Update vsr_segments
 ```{r, Update vsr_segments}
 
 # Update vsr_segments on the database side
+# Only runs if now ais segments are present, otherwise, print(No new segments data at: now)
 update_vsr_segments(con = con)
+```
 
+#### Map VSR segments sample data
+```{r, vsr_ex_map}
 con <- db_connect()
 vsr_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE, 
                                query = "SELECT * FROM vsr_segments 
                                         LIMIT 1000;")
-
+# Get 2019 VSR Zone
 vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE, 
                                query = "SELECT * FROM vsr_zones;")
 vsr_2019 <- head(vsr_zones,n = 1L)
 
+# VSR Segments map example
 ex_vsr_seg_map <- leaflet(vsr_segments_ex) %>% 
   setView(lng = '-119', lat = '34',zoom = 7) %>% 
   addTiles() %>% 
@@ -190,7 +190,9 @@ ex_vsr_seg_map <- leaflet(vsr_segments_ex) %>%
 ex_vsr_seg_map
 ```
 
-### Merge vsr_segments data with IHS data
+### Calculate Statistics
+
+#### Merge vsr_segments data with ihs_data
 ```{r, Merge vsr_segments with IHS data}
 
 # Merge vsr_segments with ihs_data from database to return vsr_segs_ihs in global environment. (Takes a little time ~40 seconds)
@@ -199,7 +201,7 @@ vsr_segs_ihs <- merge_ihs_vsr()
 })
 ```
 
-### Calculate ship statistics
+#### Calculate Ship Statistics
 ```{r, ship statistics} 
 
 # Calculate ship stats for each mmsi using merged df, vsr_segs_ihs
@@ -210,15 +212,9 @@ ship_stats_2019 <- ship_statistics(data = vsr_segs_ihs,
                                    date_end = '2019-12-31',
                                    tonnage = 300)
 
-ship_stats_2019_table <- ship_stats_2019 %>% 
-  kable(escape = F) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
-  scroll_box(width = "100%", height = "300px")
-
-ship_stats_2019_table
 ```
 
-## Overwrite the ship_stats table in the database 
+#### Overwrite the ship_stats Table in the Database 
 ```{r, ship_stats db write}
 # And overwrite the ship_stats table in the database 
 dbWriteTable(con = con, 
@@ -227,7 +223,7 @@ dbWriteTable(con = con,
              overwrite = TRUE)
 ```
 
-### Calculate operator statistics
+#### Calculate Operator Statistics
 ```{r, operator statistics} 
 
 # Calculate operator stats for each mmsi 
@@ -238,15 +234,10 @@ operator_stats_2019 = operator_statistics(data = vsr_segs_ihs,
                                      date_end = '2019-12-31',
                                      tonnage = 300) %>% filter("total distance (km)" >= 100)
 
-operator_stats_2019_table <- operator_stats_2019 %>% 
-  kable(escape = F) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
-  scroll_box(width = "100%", height = "300px")
 
-operator_stats_2019_table
 ```
 
-## Overwrite the operator_stats table in the database
+#### Overwrite the operator_stats Table in the Database
 ```{r, overwrite operator_stats in db}
 # And overwrite the operator_stats table in the database 
 dbWriteTable(con = con, 
@@ -256,8 +247,72 @@ dbWriteTable(con = con,
 ```
 
 ### Disconnect from database
+
+#### Disconnect from Database
 ```{r, disconnect}
 
 dbDisconnect(con)
+```
+
+### Maps & Tables
+```{r, include=FALSE}
+example_ais_data_table <- kable(head(example_ais_data, n = 100L)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+  scroll_box(width = "100%", height = "300px")
+```
+
+#### Example AIS Points data table
+```{r}
+example_ais_data_table
+```
+
+```{r, include=FALSE}
+ex_ais_data_map <- leaflet(head(example_ais_data, n=1000L)) %>% 
+        addTiles() %>% 
+        addCircles(lat = example_ais_data$lat, lng = example_ais_data$lon) %>% 
+        setView(lng = '-119', lat = '34',zoom = 7)
+```
+
+#### Example AIS Points Map
+```{r}
+ex_ais_data_map
+```
+
+```{r, include=FALSE}
+ex_seg_map <- leaflet(example_segs_data) %>% 
+                    setView(lng = '-119', lat = '34',zoom = 7) %>% 
+                    addTiles() %>% 
+                    addPolylines()
+```
+
+#### Example Segments Map
+```{r}
+ex_seg_map
+```
+
+### Ship & Operator Statistics Tables
+
+```{r, ship_stats_tbl, include=FALSE}
+ship_stats_2019_table <- ship_stats_2019 %>% 
+  kable(escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
+  scroll_box(width = "100%", height = "300px")
+```
+
+#### Ship Statistics Table
+```{r}
+ship_stats_2019_table
+```
+
+```{r, op_stats_tbl, include=FALSE}
+operator_stats_2019_table <- operator_stats_2019 %>% 
+  kable(escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
+  scroll_box(width = "100%", height = "300px")
+```
+
+#### Operator Statistics Table
+```{r}
+operator_stats_2019_table
 ```
 

@@ -229,7 +229,9 @@ operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=N
     `distance (nautcal miles) over 15 knots` = sum(seg_km [speed>15]*0.539957),
     number_of_distinct_trips = length(unique(date)), 
     number_of_distinct_mmsi = length(unique(mmsi)),
-    number_of_distinct_names = length(unique(name))),
+    number_of_distinct_names = length(unique(name)),
+    `noaa compliance score (reported speed)` = as.numeric((sum(seg_km [speed<=10 & mean(speed)<=12])/sum(seg_km)*100)),
+    `noaa compliance score (calculated speed)` = as.numeric((sum(seg_km [seg_knots<=10 & mean(seg_knots)<=12])/sum(seg_km))*100)),
     by=list(operator)]
   # Assign letter grades ----
   operator_stats$grade = cut(operator_stats$`compliance score (reported speed)`,
@@ -237,6 +239,12 @@ operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=N
                          labels = c("F", "D", "C", "B", "A", "A+"),
                          right = FALSE,
                          include.lowest = TRUE)
+  
+  operator_stats$noaa_grade = cut(operator_stats$`noaa compliance score (reported speed)`,
+                              breaks = c(0, 10, 25, 50, 75, 100),
+                              labels = c("F", "D", "C", "B", "A"),
+                              right = FALSE,
+                              include.lowest = TRUE)
   # order by best grades and furthest travelled
   operator_stats = operator_stats <- operator_stats[order(-grade, -`total distance (km)`)]
   

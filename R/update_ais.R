@@ -69,7 +69,7 @@ update_segments_data <- function(con, ais_data){
 #' @importFrom RPostgreSQL dbDisconnect
 #'
 #' @examples
- update_vsr_segments(con)
+#' update_vsr_segments(con)
 #' @export
 update_vsr_segments <- function(con){
 # initiate db connection 
@@ -144,7 +144,7 @@ update_vsr_segments <- function(con){
   }
   
   else{
-    print("No new segments data at:")
+    print("All caught up:")
     print(now(tzone="America/Los_Angeles"))
   }
   #dbDisconnect(con)

@@ -1,12 +1,12 @@
 ---
-title: "Run Through"
+title: "WhaleSafe Code Run Through"
 author: "Sean Goral"
-date: "2/23/2020"
+date: "2/19/2020"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
 ```
 
 ```{r, libraries, include=FALSE}

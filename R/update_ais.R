@@ -69,7 +69,7 @@ update_segments_data <- function(con, ais_data){
 #' @importFrom RPostgreSQL dbDisconnect
 #'
 #' @examples
-#' update_vsr_segments(con)
+ update_vsr_segments(con)
 #' @export
 update_vsr_segments <- function(con){
 # initiate db connection 
@@ -116,9 +116,13 @@ update_vsr_segments <- function(con){
   }
   
   else{
+  # newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments")) %>% .$max
+  # newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments")) %>% .$max
+    print("nada")
+  }
+  
   newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments")) %>% .$max
   newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments")) %>% .$max
-  }
   
 # If vsr_segments is in the database, remove table ----
   if (newest_seg_date > newest_vsr_seg_date){

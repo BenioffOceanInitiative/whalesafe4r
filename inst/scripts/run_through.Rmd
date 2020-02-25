@@ -316,3 +316,194 @@ operator_stats_2019_table <- operator_stats_2019 %>%
 operator_stats_2019_table
 ```
 
+### mmsi & Operator Counts
+
+#### mmsi Count (IHS Data)
+```{r, mmsi counts}
+con <- db_connect()
+ihs_data <- dbGetQuery(con, "SELECT * FROM ihs_data;")
+
+length(unique(ihs_data$mmsi))
+```
+
+#### mmsi Count (IHS Data) >= 300 gross tonnage
+```{r}
+length(unique(ihs_data$mmsi[ihs_data$gt>=300]))
+```
+
+#### mmsi Count (VSR Segments Data)
+```{r}
+# 1812 unique mmsi's in vsr_segments database table
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments;")
+```
+
+#### 2019 mmsi Count (VSR Segments Data) 
+```{r}
+# 897 unique mmsi's in vsr_segments database table in 2019
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where year = 2019;")
+
+dbDisconnect(con)
+```
+
+#### mmsi Count (VSR Segments & IHS Data)
+```{r}
+# 1441 unique mmsi's (merged df) in vsr in 2018 & 2019
+length(unique(vsr_segs_ihs$mmsi))
+```
+
+#### 2019 mmsi Count (VSR Segments & IHS Data)
+```{r}
+# 706 unique mmsi's in vsr in 2019
+length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019]))
+```
+
+#### 2019 mmsi Count (VSR Segments & IHS Data) >= 300 gross tonnage
+```{r}
+# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+```
+
+#### DOUBLE CHECKIN'
+```{r}
+# 683 unique mmsi's in vsr in 2019
+length(unique(ship_stats_2019$mmsi))
+```
+
+```{r}
+# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300]))
+```
+
+#### 2019 mmsi Count (VSR Segments & IHS Data) >= 300 gross tonnage & >= 100 km travelled
+```{r}
+# 549 unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
+length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300 & ship_stats_2019$`total distance (km)`>=100]))
+
+```
+
+#### Operator Counts
+```{r, operator counts}
+# 1095 operators total in IHS data
+length(unique(ihs_data$operator))
+```
+
+#### Operators with vessels >= 300 gross tonnage
+```{r}
+# 1062 operators over 300 gt
+length(unique(ihs_data$operator[ihs_data$gt>=300]))
+```
+
+#### Operators in Merged VSR segments and IHS data
+```{r}
+# 467 unique operators in vsr in 2018 & 2019
+length(unique(vsr_segs_ihs$operator))
+```
+
+#### Operators in Merged VSR segments and IHS data (2019)
+```{r}
+# 267 unique operators in vsr in 2019
+length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019]))
+```
+
+#### Operators in Merged VSR segments and IHS data (2019 & gt >= 300)
+```{r}
+# 257 unique operators in vsr in 2019 with gross tonnage >= 300
+length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+
+```
+
+#### Double Checking
+```{r}
+# DOUBLE CHECKIN'
+# 257 unique operators in vsr in 2019 with gt>=300
+length(unique(operator_stats_2019$operator))
+
+# 257 unique operators in vsr in 2019 with vessels gt >= 300
+length(unique(ship_stats_2019$operator[ship_stats_2019$gt>=300]))
+```
+
+#### Operators in Merged VSR segments and IHS data (2019, gt >= 300, distance >= 100 km)
+```{r}
+# 208 operators with over 100 km travelled total
+length(unique(operator_stats_2019$operator[operator_stats_2019$`total distance (km)`>=100]))
+
+```
+
+
+### Grade Graphs
+
+#### Operator Grades (basic rubric)
+```{r operator grades graph}
+
+operator_stats_2019_100k=operator_stats_2019 %>% 
+  filter(operator_stats_2019$`total distance (km)`>=100)
+
+theme_set(theme_bw()) 
+
+op_grade <- ggplot(data.frame(operator_stats_2019_100k), aes(x=grade)) +
+  geom_bar() +  
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("Operator VSR Cooperation Grade Distribution: 2019") + 
+  labs(caption="Source: Benioff Ocean Initiative",
+       x="VSR Cooperation Grade",
+       y="Count") +
+  geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")+
+      # geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5),size=4, color = "white") + 
+    theme(plot.title = element_text(size = 14))
+
+op_grade
+
+```
+
+#### Vessel Grades (modified NOAA Grades)
+```{r, ship grades graph}
+
+ship_stats_2019_100k=ship_stats_2019 %>% 
+  filter(ship_stats_2019$`total distance (km)`>=100)
+
+ship_grades <- ggplot(data.frame(ship_stats_2019_100k), aes(x=noaa_grade)) +
+  geom_bar() +  
+  theme(plot.title = element_text(hjust = 0.5)) + 
+    theme(plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Ship VSR Cooperation Grade Distribution: 2019", subtitle = "Modified NOAA Rubric") + 
+  labs(caption="Source: Benioff Ocean Initiative",
+       x="VSR Cooperation Grade",
+       y="Count") +
+    geom_text(stat='count', aes(label=..count..), vjust=1.5, color="white")
+
+ship_grades
+```
+
+
+```{r, summary stats and percents, include=FALSE, error=FALSE}
+
+summary_stats = data.table(  
+  nm_0_10=sum(ship_stats_2019$`distance (nautcal miles) 0-10 knots`),
+    nm_10_12=sum(ship_stats_2019$`distance (nautcal miles) 10-12 knots`),
+    nm_12_15=sum(ship_stats_2019$`distance (nautcal miles) 12-15 knots`),
+    nm_over_15=sum(ship_stats_2019$`distance (nautcal miles) over 15 knots`))
+
+summary_stats_percents = data.table(  
+  `% Travelled 0-10 kn` = (sum(ship_stats_2019_100k$`distance (nautcal miles) 0-10 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100),
+  `% Travelled 10-12 kn`= sum(ship_stats_2019_100k$`distance (nautcal miles) 10-12 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled 12-15 kn` = sum(ship_stats_2019_100k$`distance (nautcal miles) 12-15 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100,
+  `% Travelled over 15 kn` = sum(ship_stats_2019_100k$`distance (nautcal miles) over 15 knots`)/sum(ship_stats_2019_100k$`total distance (nautcal miles)`)*100)
+
+sum_stats=melt(summary_stats_percents)
+```
+
+#### Speed Distribution Pie Chart
+```{r, make pie chart}
+
+pie <- ggplot(sum_stats, aes(x="", y=value, fill=variable)) + geom_bar(stat="identity", width=1) + 
+  coord_polar("y", start=0) +
+   geom_text(aes(label = paste0(round(value), "%")), position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values=c("palegreen1", "skyblue1", "gold1" ,"coral2")) + 
+  labs(x = NULL, y = NULL, fill = NULL, title = "Summary of VSR cooperation for 2019") + 
+  theme_classic() + theme(axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, color = "#666666")) +  theme(plot.title = element_text(hjust = -0.5)) + theme(plot.title = element_text(size = 16))
+
+pie
+```

@@ -71,15 +71,15 @@ update_segments_data <- function(con, ais_data){
 #' @examples
 #' update_vsr_segments(con)
 #' @export
-update_vsr_segments <- function(con){
-# initiate db connection 
-  #con=db_connect()
-  query = ("CREATE TABLE vsr_segments AS
+update_vsr_segments <- function(con=NULL){
+# SQL Date and Geometry intersect query
+  # Creates "vsr_segments_temp" table which will be inserted into "vsr_segments" table.
+  query = ("CREATE TABLE vsr_segments_temp AS
             SELECT
             s.name, s.mmsi, s.speed,
             s.seg_mins, s.seg_km,
             s.seg_kmhr, s.seg_knots, s.speed_diff,
-            s.year, s.beg_dt, s.end_dt,
+            s.beg_dt, s.end_dt,
             s.beg_lon, s.beg_lat,
             s.end_lon, s.end_lat, z.gid,
             CASE
@@ -90,7 +90,7 @@ update_vsr_segments <- function(con){
             ST_Multi(
             ST_Intersection(s.geometry, z.geom)
             ) END AS geometry
-            FROM ais_segments AS s
+            FROM ais_segments_temp AS s
             INNER JOIN vsr_zones AS z
             ON ST_Intersects(s.geometry, z.geom)
             WHERE
@@ -100,53 +100,33 @@ update_vsr_segments <- function(con){
   # get list of tables in database
   database_tables_list = db_list_tables(con)
   
-  if ('vsr_segments' %!in% database_tables_list){
+  if ('vsr_segments_temp' %!in% database_tables_list){
+    
     dbExecute(con, query)
     
-    dbExecute(con, "CREATE INDEX 
-              vsr_segments_geom_index
-              ON vsr_segments
-              USING GIST (geometry);")
+    # dbExecute(con, "CREATE INDEX
+    #           vsr_segments_geom_index
+    #           ON vsr_segments
+    #           USING GIST (geometry);")
+    # 
+    # dbExecute(con, "CREATE INDEX dt_idx
+    #           ON vsr_segments (beg_dt, end_dt);")
+    # 
+    # dbExecute(con, "CREATE INDEX vsr_mmsi_idx
+    #           ON vsr_segments (mmsi);")
+  }
+  
+  else if ('vsr_segments_temp' %in% database_tables_list){
     
-    dbExecute(con, "CREATE INDEX dt_idx
-              ON vsr_segments (beg_dt, end_dt);")
+    dbRemoveTable(con, "vsr_segments_temp")
     
-    dbExecute(con, "CREATE INDEX vsr_mmsi_idx
-              ON vsr_segments (mmsi);")
+    dbExecute(con, query)
   }
   
-  else{
-  # newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments")) %>% .$max
-  # newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments")) %>% .$max
-    print("nada")
-  }
+else {
   
-  newest_seg_date = (dbGetQuery(con, "SELECT MAX(datetime) from ais_segments")) %>% .$max
-  newest_vsr_seg_date = (dbGetQuery(con, "SELECT MAX(end_dt) from vsr_segments")) %>% .$max
-  
-# If vsr_segments is in the database, remove table ----
-  if (newest_seg_date > newest_vsr_seg_date){
-  dbRemoveTable(con, 'vsr_segments')
-# Execute table create sql to get new vsr_segments table
-  dbExecute(con, query)
-  
-  dbExecute(con, "CREATE INDEX 
-                  vsr_segments_geom_index
-                  ON vsr_segments
-                  USING GIST (geometry);")
-  
-  dbExecute(con, "CREATE INDEX dt_idx
-                  ON vsr_segments (beg_dt, end_dt);")
-  
-  dbExecute(con, "CREATE INDEX vsr_mmsi_idx
-                  ON vsr_segments (mmsi);")
+  print(NULL)
   
   }
-  
-  else{
-    print("All caught up:")
-    print(now(tzone="America/Los_Angeles"))
-  }
-  #dbDisconnect(con)
 }
 

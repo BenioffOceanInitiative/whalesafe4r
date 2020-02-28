@@ -137,27 +137,27 @@ new_segs_data <- update_segments_data(con = con,
                                       ais_data = new_ais_data)
 
 # Use example_ais_data in the update_segments_data() function to return example_segs_data 
-example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data_5000)
+example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data)
 
 ```
 
 #### Write ais_segs_data to ais_segments Table in Database
 ```{r, Write ais_segs_data to database}
 
-# Append new_segs_data to the database if new_segs_data exists
-write_new_segs_data <- function(data=new_segs_data){
-    if (is.null(new_segs_data)==TRUE){
+# write new_segs_data to the database if new_segs_data exists
+write_new_segs_data <- function(data=NULL, con=NULL){
+    if (is.null(data)==TRUE){
      print("Null segments data")
     } else {
       dbWriteTable(con = con, 
-                   name = 'ais_segments1', 
-                   value = new_segs_data, 
-                   append = TRUE)
+                   name = 'ais_segments_temp', 
+                   value = data, 
+                   overwrite = TRUE)
     }
   }
 
 # Run it
-write_new_segs_data()
+write_new_segs_data(data = example_segs_data, con = con)
 ```
 
 ### Update vsr_segments Table in the Database
@@ -170,15 +170,23 @@ write_new_segs_data()
 update_vsr_segments(con = con)
 ```
 
+```{r, add updated vsr_segments_temp data into vsr_segments table}
+
+dbExecute(con, "INSERT INTO vsr_segments_test
+SELECT * FROM vsr_segments_temp;")
+
+```
+
 #### Map VSR segments sample data
 ```{r, vsr_ex_map}
 con <- db_connect()
-vsr_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE, 
+ais_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE, 
                                query = "SELECT * FROM vsr_segments 
-                                        LIMIT 1000;")
+                               limit 10;")
 # Get 2019 VSR Zone
 vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE, 
                                query = "SELECT * FROM vsr_zones;")
+
 vsr_2019 <- head(vsr_zones,n = 1L)
 
 # VSR Segments map example

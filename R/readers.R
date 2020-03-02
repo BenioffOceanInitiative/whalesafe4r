@@ -80,7 +80,6 @@ urls2df <- function(path = NULL){
 #' create segments from dataframe (data=df)
 #'  segs=ais2segments(data = df)
 #' Empty files returns empty df with date, filename, and timestamp and empty dataframes returns NULL
-#' 
 #' segs_empty = ais2segments(data = df_empty_url)
 #'
 #' @export
@@ -107,7 +106,7 @@ ais2segments <- function(data=NULL){
     d <- tryCatch({
       d %>%
       arrange(datetime) %>%
-      filter(!duplicated(round_date(datetime, unit="minute"))) %>%
+      #filter(!duplicated(round_date(datetime, unit="minute"))) %>%
       st_as_sf(coords = c("lon", "lat"), crs=4326, remove = F) %>%
       mutate(
         speed     = lag(speed),
@@ -128,7 +127,6 @@ ais2segments <- function(data=NULL){
         seg_lt10_calc = if_else(seg_knots <= 10, TRUE, FALSE)) %>% 
       filter(seg_new==0)
     
-    return(d)
     },
     error=function(cond) {
       message(paste("Data does not seem to exist:"))

@@ -94,8 +94,7 @@ whale.dive <- function(u){
 #' @note THIS REQUIRES THE START URL TO BE A TXT FILE PATH
 #'
 #' @examples
-#'
-#' get_ais_urls("https://ais.sbarc.org/logs_delimited/2018/180408/AIS_SBARC_180408-12.txt")
+#' links <- get_ais_urls("https://ais.sbarc.org/logs_delimited/2019/191008/AIS_SBARC_191008-12.txt")
 #'
 #'
 

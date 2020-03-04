@@ -174,7 +174,7 @@ vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE,
 vsr_2019 <- head(vsr_zones,n = 1L)
 
 # VSR Segments map example
-ex_vsr_seg_map <- leaflet(ais_segments_ex) %>% 
+ex_vsr_seg_map <- leaflet(vsr_segments_ex) %>% 
   setView(lng = '-119', lat = '34',zoom = 7) %>% 
   addTiles() %>% 
   addPolylines(label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, beg_dt, name), group = "segments") %>% 

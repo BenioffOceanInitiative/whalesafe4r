@@ -22,6 +22,7 @@ library(sf)
 library(rgeos)
 library(dplyr)
 library(RPostgreSQL)
+library(RPostgres)
 library(dbplyr)
 library(lubridate)
 library(units)
@@ -47,7 +48,7 @@ source('~/github/whalesafe4r/R/readers.R')
 
 # 1) Loop through ais.txt URLs to return ais_data
 # 2) Create ais_segments from ais_data
-# 3) Intersect ais_segments and vsr_zones table in the database to create vsr_segments table in he database
+# 3) Intersect ais_segments and vsr_zones table in the database to create vsr_segments table in the database
 source('~/github/whalesafe4r/R/update_ais.R')
 
 # Utility functions for crawler, date and spatial functions, etc...
@@ -92,7 +93,7 @@ new_links
 
 #### Example Links
 ```{r}
-# Example get_ais_urls()
+# Example get_ais_urls() from November 10, 2019, 00 hour
 
 example_path <- "https://ais.sbarc.org/logs_delimited/2019/191110/AIS_SBARC_191110-00.txt"
 
@@ -109,9 +110,9 @@ example_links%>% tail()
 
 # Use update_ais_data() to loop through 'new_links' and return new_ais_data data.frame
 
-new_ais_data <- update_ais_data(links = new_links)
+new_ais_data <- get_ais_data(links = new_links)
 
-example_ais_data <- update_ais_data(links = example_links)
+example_ais_data <- get_ais_data(links = example_links)
 
 example_ais_data_5000 <- example_ais_data %>% 
   head(5000)
@@ -122,22 +123,19 @@ example_ais_data_5000 <- example_ais_data %>%
 ```{r, Append ais_data table}
 
 # Append new_ais_data to ais_data table in the database
-# Appending to ais_data1 for testing
-dbWriteTable(con = con, 
-             name = 'ais_data1', 
-             value = new_ais_data, 
-             append = TRUE)
+# Appending to 'test_ais_data' for testing
+update_ais_data(ais_data = example_ais_data_5000)
+
 ```
 
 #### Get new_segs_data for global environment
 ```{r, new_segs_data}
 
 # Use new_ais_data in the update_segments_data() function to return new_segs_data 
-new_segs_data <- update_segments_data(con = con, 
-                                      ais_data = new_ais_data)
+new_segs_data <- get_segment_data(ais_data = new_ais_data)
 
 # Use example_ais_data in the update_segments_data() function to return example_segs_data 
-example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data)
+example_segs_data <- get_segment_data(ais_data = example_ais_data_5000)
 
 ```
 
@@ -145,19 +143,10 @@ example_segs_data <- update_segments_data(con = con, ais_data = example_ais_data
 ```{r, Write ais_segs_data to database}
 
 # write new_segs_data to the database if new_segs_data exists
-write_new_segs_data <- function(data=NULL, con=NULL){
-    if (is.null(data)==TRUE){
-     print("Null segments data")
-    } else {
-      dbWriteTable(con = con, 
-                   name = 'ais_segments_temp', 
-                   value = data, 
-                   overwrite = TRUE)
-    }
-  }
+# Writing to 'test_ais_segments' for rmd
+update_segments_data(segs_data = new_segs_data)
 
-# Run it
-write_new_segs_data(data = example_segs_data, con = con)
+update_segments_data(segs_data = example_segs_data)
 ```
 
 ### Update vsr_segments Table in the Database
@@ -166,23 +155,18 @@ write_new_segs_data(data = example_segs_data, con = con)
 ```{r, Update vsr_segments}
 
 # Update vsr_segments on the database side
-# Only runs if now ais segments are present, otherwise, print(No new segments data at: now)
-update_vsr_segments(con = con)
-```
+update_vsr_segments(segs_data = new_segs_data)
 
-```{r, add updated vsr_segments_temp data into vsr_segments table}
-
-dbExecute(con, "INSERT INTO vsr_segments_test
-SELECT * FROM vsr_segments_temp;")
+temp_vsr_segments <- update_vsr_segments(segs_data = example_segs_data)
 
 ```
 
 #### Map VSR segments sample data
 ```{r, vsr_ex_map}
-con <- db_connect()
-ais_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE, 
-                               query = "SELECT * FROM vsr_segments 
-                               limit 10;")
+# con <- db_connect()
+vsr_segments_ex <- sf::st_read(dsn = con, EWKB = TRUE,
+                               query = "SELECT * FROM vsr_segments
+                               limit 1000;")
 # Get 2019 VSR Zone
 vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE, 
                                query = "SELECT * FROM vsr_zones;")
@@ -190,7 +174,7 @@ vsr_zones <- sf::st_read(dsn = con, EWKB = TRUE,
 vsr_2019 <- head(vsr_zones,n = 1L)
 
 # VSR Segments map example
-ex_vsr_seg_map <- leaflet(vsr_segments_ex) %>% 
+ex_vsr_seg_map <- leaflet(ais_segments_ex) %>% 
   setView(lng = '-119', lat = '34',zoom = 7) %>% 
   addTiles() %>% 
   addPolylines(label = ~sprintf("%0.03f km/hr on %s", seg_kmhr, beg_dt, name), group = "segments") %>% 
@@ -205,19 +189,19 @@ ex_vsr_seg_map
 #### Merge vsr_segments data with ihs_data
 ```{r, Merge vsr_segments with IHS data}
 
-# Merge vsr_segments with ihs_data from database to return vsr_segs_ihs in global environment. (Takes a little time ~40 seconds)
+# Merge vsr_segments with ihs_data from database to return vsr_ihs_data in global environment. (Takes a little time ~60 seconds)
 system.time({
-vsr_segs_ihs <- merge_ihs_vsr()
+vsr_ihs_data <- get_vsr_ihs_data()
 })
 ```
 
 #### Calculate Ship Statistics
 ```{r, ship statistics} 
 
-# Calculate ship stats for each mmsi using merged df, vsr_segs_ihs
-ship_stats <- ship_statistics(data = vsr_segs_ihs)
+# Calculate ship stats for each mmsi using merged df, vsr_ihs_data
+ship_stats <- ship_statistics(data = vsr_ihs_data)
 
-ship_stats_2019 <- ship_statistics(data = vsr_segs_ihs,
+ship_stats_2019 <- ship_statistics(data = vsr_ihs_data,
                                    date_start = '2019-01-01',
                                    date_end = '2019-12-31',
                                    tonnage = 300)
@@ -237,9 +221,9 @@ dbWriteTable(con = con,
 ```{r, operator statistics} 
 
 # Calculate operator stats for each mmsi 
-operator_stats = operator_statistics(data = vsr_segs_ihs)
+operator_stats = operator_statistics(data = vsr_ihs_data)
 
-operator_stats_2019 = operator_statistics(data = vsr_segs_ihs,
+operator_stats_2019 = operator_statistics(data = vsr_ihs_data,
                                      date_start = '2019-01-01',
                                      date_end = '2019-12-31',
                                      tonnage = 300) %>% filter("total distance (km)" >= 100)
@@ -297,6 +281,7 @@ ex_seg_map <- leaflet(example_segs_data) %>%
 
 #### Example Segments Map
 ```{r}
+#different df that what's shown in ex_ais_data_map
 ex_seg_map
 ```
 
@@ -343,14 +328,14 @@ length(unique(ihs_data$mmsi[ihs_data$gt>=300]))
 
 #### mmsi Count (VSR Segments Data)
 ```{r}
-# 1812 unique mmsi's in vsr_segments database table
+# unique mmsi's in vsr_segments database table
 dbGetQuery(con, "select count(distinct mmsi) from vsr_segments;")
 ```
 
 #### 2019 mmsi Count (VSR Segments Data) 
 ```{r}
 # 897 unique mmsi's in vsr_segments database table in 2019
-dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where year = 2019;")
+dbGetQuery(con, "select count(distinct mmsi) from vsr_segments where datetime >= '2019-01-01';")
 
 dbDisconnect(con)
 ```
@@ -358,35 +343,35 @@ dbDisconnect(con)
 #### mmsi Count (VSR Segments & IHS Data)
 ```{r}
 # 1441 unique mmsi's (merged df) in vsr in 2018 & 2019
-length(unique(vsr_segs_ihs$mmsi))
+length(unique(vsr_ihs_data$mmsi))
 ```
 
 #### 2019 mmsi Count (VSR Segments & IHS Data)
 ```{r}
-# 706 unique mmsi's in vsr in 2019
-length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019]))
+# unique mmsi's in vsr in 2019
+length(unique(vsr_ihs_data$mmsi[vsr_ihs_data$datetime>='2019-01-01']))
 ```
 
 #### 2019 mmsi Count (VSR Segments & IHS Data) >= 300 gross tonnage
 ```{r}
-# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
-length(unique(vsr_segs_ihs$mmsi[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+# unique mmsi's in vsr in 2019 with gross tonnage >= 300
+length(unique(vsr_ihs_data$mmsi[vsr_ihs_data$datetime>='2019-01-01' & vsr_ihs_data$gt>=300]))
 ```
 
 #### DOUBLE CHECKIN'
 ```{r}
-# 683 unique mmsi's in vsr in 2019
+# unique mmsi's in vsr in 2019
 length(unique(ship_stats_2019$mmsi))
 ```
 
 ```{r}
-# 683 unique mmsi's in vsr in 2019 with gross tonnage >= 300
+# unique mmsi's in vsr in 2019 with gross tonnage >= 300
 length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300]))
 ```
 
 #### 2019 mmsi Count (VSR Segments & IHS Data) >= 300 gross tonnage & >= 100 km travelled
 ```{r}
-# 549 unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
+#  unique mmsi's in vsr in 2019 with gross tonnage >= 300 and travelled >= 100 km
 length(unique(ship_stats_2019$mmsi[ship_stats_2019$gt>=300 & ship_stats_2019$`total distance (km)`>=100]))
 
 ```
@@ -406,19 +391,19 @@ length(unique(ihs_data$operator[ihs_data$gt>=300]))
 #### Operators in Merged VSR segments and IHS data
 ```{r}
 # 467 unique operators in vsr in 2018 & 2019
-length(unique(vsr_segs_ihs$operator))
+length(unique(vsr_ihs_data$operator))
 ```
 
 #### Operators in Merged VSR segments and IHS data (2019)
 ```{r}
 # 267 unique operators in vsr in 2019
-length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019]))
+length(unique(vsr_ihs_data$operator[vsr_ihs_data$year==2019]))
 ```
 
 #### Operators in Merged VSR segments and IHS data (2019 & gt >= 300)
 ```{r}
 # 257 unique operators in vsr in 2019 with gross tonnage >= 300
-length(unique(vsr_segs_ihs$operator[vsr_segs_ihs$year==2019 & vsr_segs_ihs$gt>=300]))
+length(unique(vsr_ihs_data$operator[vsr_ihs_data$year==2019 & vsr_ihs_data$gt>=300]))
 
 ```
 

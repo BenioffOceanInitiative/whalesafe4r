@@ -76,9 +76,9 @@ update_segments_data <- function(segs_data=NULL){
   
   if (is.null(segs_data)==TRUE){
     print("Null segments data")
-  } else if (length(segs_data)==1)
+  } else if (length(segs_data)==1){
     print("Empty segments data")
-  else {
+  } else {
     # Initiate connection for temporary table session
     con = db_connect()
     
@@ -123,12 +123,18 @@ get_ihs_data <- function(){
 #' @export
 
 update_vsr_segments <- function(segs_data=NULL){
+  
+  if (is.null(segs_data)==TRUE){
+    print("Null segments data")
+  } else if (length(segs_data)==1){
+    print("Empty segments data")
+  } else {
   # Initiate database connection
   con = db_connect()
   # Write 'segs_data' to a temporary table called "temp_ais_segments"
   dbWriteTable(conn = con,
                name = "temp_ais_segments",
-               value = new_segs_data,
+               value = segs_data,
                temporary = TRUE)
   # SQL'vsr_query' creates temporary "temp_vsr_segments" table which intersects vsr_zones based on date ranges ----
   vsr_query = ("CREATE TEMPORARY TABLE 
@@ -172,12 +178,14 @@ update_vsr_segments <- function(segs_data=NULL){
   # dbExecute(conn = con, join_query)
   #  # Insert temporary table "temp_vsr_ihs_segs" into "vsr_segments' table.
   dbExecute(conn = con, 
-            "INSERT INTO vsr_segments
+            "INSERT INTO test_vsr_segments
             SELECT * FROM temp_vsr_segments;")
   
   # Disconnect from temporary table connection
   dbDisconnect(conn = con)
-
+  
+  return(temp_vsr_segments)
+  }
 }
 
 

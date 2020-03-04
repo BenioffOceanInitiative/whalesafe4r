@@ -1,42 +1,4 @@
 
-#' Join VSR segments with IHS Ownership Data 
-#'
-#' @param data 'vsr_ais_segments' (table from the postgres database)
-#'
-#' @return vsr_segs_ihs (merged dataframe with VSR segments and ihs data)
-#' @importFrom RPostgreSQL dbDisconnect
-#' @export
-#'
-#' @examples
-#system.time({
-  #' vsr_segs_ihs = merge_ihs_vsr()
-# })
-#   user  system elapsed 
-# 21.451   2.850  43.917   
-
-merge_ihs_vsr <- function(){
-   # Connect to DB
-   con = db_connect()
-  
-   # Get vsr_gegments data from database
-   vsr_segs = tbl(con,"vsr_segments") %>%
-     select(-geometry)
-   # Get IHS data from database
-   ihs_data = tbl(con, "ihs_data")
-
-    # Merge/inner join vsr_segments and IHS data to get only segments with complete records...
-   vsr_segs_ihs = merge(vsr_segs, ihs_data, by="mmsi")
-   # Create 'date' column 
-   vsr_segs_ihs$date = as.Date(format(vsr_segs_ihs$beg_dt,"%Y-%m-%d"))
-   
-   return(vsr_segs_ihs)
-
-   # set the data frame as data table
-   # vsr_segs_ihs = setDT(vsr_segs_ihs)
-   # Disconnect from DB
-   dbDisconnect(con)
- }
-
 #' Ship Cooperation Statistics Function ----
 #'
 #' @param data 'vsr_ais_segments' (table from the postgres database)
@@ -47,62 +9,63 @@ merge_ihs_vsr <- function(){
 #'
 #' @examples
 #' 
-#' ship_stats = ship_statistics(data=vsr_segs_ihs ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
-#'
-#' ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-08-01', tonnage=300)
+#' ship_stats = ship_statistics(data=vsr_ihs_data ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
+#' 
+#' ship_statistics from scratch, takes a bit longer
+#' ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-11-14', tonnage=300)
 
 ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
   
   if (length(data)==0 & is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = merge_ihs_vsr()
+    vsr_ihs_data = get_vsr_ihs_data()
   }
   else if (length(data)==0 & is.na(date_start)){
-    vsr_segs_ihs = merge_ihs_vsr()
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = get_vsr_ihs_data()
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(date <= as.Date(date_end))
   }
   else if (length(data)==0 & is.na(date_end)){
-    vsr_segs_ihs = merge_ihs_vsr()
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = get_vsr_ihs_data()
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(date >= as.Date(date_start))
   }
   else if (length(data)==0){
-    vsr_segs_ihs = merge_ihs_vsr()
-    vsr_segs_ihs = vsr_segs_ihs %>%
+    vsr_ihs_data = get_vsr_ihs_data()
+    vsr_ihs_data = vsr_ihs_data %>%
       filter(date >= as.Date(date_start)
              & date <= as.Date(date_end))
   }
   else if (is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = data
+    vsr_ihs_data = data
   } 
   else if (is.na(date_start)){
-    vsr_segs_ihs = data
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = data
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(date <= as.Date(date_end))
   } 
   else if (is.na(date_end)){
-    vsr_segs_ihs = data
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = data
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(date >= as.Date(date_start))
   } 
   else {
-    vsr_segs_ihs = data
-    vsr_segs_ihs = vsr_segs_ihs %>%
+    vsr_ihs_data = data
+    vsr_ihs_data = vsr_ihs_data %>%
       filter(date >= as.Date(date_start)
              & date <= as.Date(date_end))
   }
   
   if (is.na(tonnage)){
-    vsr_segs_ihs = vsr_segs_ihs
+    vsr_ihs_data = vsr_ihs_data
   }
   else{
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(gt>=tonnage)
   }
   # Set data.frame to data.table 
-  vsr_segs_ihs = setDT(vsr_segs_ihs)
+  vsr_ihs_data = setDT(vsr_ihs_data)
   # Produce ship_stata data.table grouped by mmsi, name and operator ----
-  ship_stats = vsr_segs_ihs[, list(
+  ship_stats = vsr_ihs_data[, list(
     #datetime = beg_dt,
     `compliance score (reported speed)` = as.numeric((sum(seg_km [speed<=10])/sum(seg_km))*100),
     `compliance score (calculated speed)` = as.numeric((sum(seg_km [seg_knots<=10])/sum(seg_km))*100),
@@ -160,63 +123,64 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
 #' 
 #' @examples
 #' 
-#' operator_stats = operator_statistics(data=vsr_segs_ihs ,date_start = '2018-02-01', date_end = '2019-11-01', tonnage = 300)
+#' operator_stats = operator_statistics(data=vsr_ihs_data ,date_start = '2018-02-01', date_end = '2019-12-31', tonnage = 300)
 #' 
+#' Operator statistics from scratch, takes a bit longer
 #' operator_stats_scratch = operator_statistics(date_start = '2018-01-01', date_end = '2019-12-31', tonnage=300)
 
 
 operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,...) {
 
   if (length(data)==0 & is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = merge_ihs_vsr()
+    vsr_ihs_data = get_vsr_ihs_data()
   }
   else if (length(data)==0 & is.na(date_start)){
-    vsr_segs_ihs = merge_ihs_vsr()
-      vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = get_vsr_ihs_data()
+      vsr_ihs_data = vsr_ihs_data %>% 
         filter(date <= as.Date(date_end))
   }
   else if (length(data)==0 & is.na(date_end)){
-    vsr_segs_ihs = merge_ihs_vsr()
-      vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = get_vsr_ihs_data()
+      vsr_ihs_data = vsr_ihs_data %>% 
         filter(date >= as.Date(date_start))
   }
   else if (length(data)==0){
-    vsr_segs_ihs = merge_ihs_vsr()
-      vsr_segs_ihs = vsr_segs_ihs %>%
+    vsr_ihs_data = get_vsr_ihs_data()
+      vsr_ihs_data = vsr_ihs_data %>%
         filter(date >= as.Date(date_start)
              & date <= as.Date(date_end))
   }
   else if (is.na(date_start) & is.na(date_end)){
-    vsr_segs_ihs = data
+    vsr_ihs_data = data
     } 
   else if (is.na(date_start)){
-    vsr_segs_ihs = data
-      vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = data
+      vsr_ihs_data = vsr_ihs_data %>% 
         filter(date <= as.Date(date_end))
   } 
   else if (is.na(date_end)){
-    vsr_segs_ihs = data
-      vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = data
+      vsr_ihs_data = vsr_ihs_data %>% 
         filter(date >= as.Date(date_start))
   } 
   else {
-    vsr_segs_ihs = data
-      vsr_segs_ihs = vsr_segs_ihs %>%
+    vsr_ihs_data = data
+      vsr_ihs_data = vsr_ihs_data %>%
         filter(date >= as.Date(date_start)
            & date <= as.Date(date_end))
   }
   
   if (is.na(tonnage)){
-    vsr_segs_ihs = vsr_segs_ihs
+    vsr_ihs_data = vsr_ihs_data
   }
   else{
-    vsr_segs_ihs = vsr_segs_ihs %>% 
+    vsr_ihs_data = vsr_ihs_data %>% 
       filter(gt>=tonnage)
   }
   
-  vsr_segs_ihs = setDT(vsr_segs_ihs)
+  vsr_ihs_data = setDT(vsr_ihs_data)
   # Produce ship_stata data.table grouped by operator ----
-  operator_stats = vsr_segs_ihs[, list(
+  operator_stats = vsr_ihs_data[, list(
     `compliance score (reported speed)` = (sum(seg_km [speed<=10])/sum(seg_km))*100,
     `compliance score (calculated speed)` = (sum(seg_km [seg_knots<=10])/sum(seg_km))*100,
     `total distance (km)` = sum(seg_km),
@@ -259,3 +223,5 @@ operator_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=N
 
   return(operator_stats)
 }
+
+

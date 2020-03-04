@@ -72,18 +72,26 @@ get_segment_data <- function(ais_data=NULL){
 #' 
 #' @export
 
-update_segments_data <- function(ais_data=NULL){
-# Initiate connection for temporary table session
-  con = db_connect()
+update_segments_data <- function(segs_data=NULL){
   
-  dbWriteTable(conn = con, 
-               name = "ais_segments", 
-               value = segs_data, 
-               append = TRUE)
-  
-  dbDisconnect(conn = con)
+  if (is.null(segs_data)==TRUE){
+    print("Null segments data")
+  } else if (length(segs_data)==1)
+    print("Empty segments data")
+  else {
+    # Initiate connection for temporary table session
+    con = db_connect()
+    
+    dbWriteTable(con = con, 
+                 name = 'test_ais_segments', 
+                 value = segs_data, 
+                 append = TRUE)
+    
+    dbDisconnect(conn = con)
+  }
   
 }
+
 
 #' Get IHS Data
 #'
@@ -199,11 +207,11 @@ get_vsr_ihs_data <- function(){
   return(vsr_segs_ihs)
 }
 
-system.time({
-vsr_ihs_data = get_vsr_ihs_data()
-})
+# system.time({
+# vsr_ihs_data = get_vsr_ihs_data()
+# })
 # user  system elapsed 
-# 36.997   5.884  91.413 
+# 29.058   4.185  61.550 
 # 
 
 # get_vsr_ihs_segs_data <- function(){

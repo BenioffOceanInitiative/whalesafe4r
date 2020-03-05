@@ -2,19 +2,16 @@
 % Please edit documentation in R/update_ais.R
 \name{update_segments_data}
 \alias{update_segments_data}
-\title{update_segments_data()}
+\title{Update AIS Segments Database Table}
 \usage{
-update_segments_data(con, ais_data)
+update_segments_data(segs_data = NULL)
 }
 \arguments{
 \item{ais_data}{}
 }
-\value{
-new_segs_data "sf" "data.table" "data.frame"
-}
 \description{
-update_segments_data()
+Creates database connection and writes new ais segments data frame to the "ais_segments" database table.
 }
 \examples{
-new_segs_data = update_segments_data(con = con, ais_data = new_ais_data)
+
 }

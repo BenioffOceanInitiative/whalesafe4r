@@ -17,7 +17,8 @@ Ship Cooperation Statistics Function ----
 }
 \examples{
 
-ship_stats = ship_statistics(data=vsr_segs_ihs ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
+ship_stats = ship_statistics(data=vsr_ihs_data ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
 
-ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-08-01', tonnage=300)
+ship_statistics from scratch, takes a bit longer
+ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-11-14', tonnage=300)
 }

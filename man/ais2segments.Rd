@@ -19,7 +19,6 @@ Read ais.txt data from URL path and return spatial data.frame
 create segments from dataframe (data=df)
  segs=ais2segments(data = df)
 Empty files returns empty df with date, filename, and timestamp and empty dataframes returns NULL
-
 segs_empty = ais2segments(data = df_empty_url)
 
 }

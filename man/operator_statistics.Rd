@@ -23,7 +23,8 @@ Operator Cooperation Statistics Function ----
 }
 \examples{
 
-operator_stats = operator_statistics(data=vsr_segs_ihs ,date_start = '2018-02-01', date_end = '2019-11-01', tonnage = 300)
+operator_stats = operator_statistics(data=vsr_ihs_data ,date_start = '2018-02-01', date_end = '2019-12-31', tonnage = 300)
 
+Operator statistics from scratch, takes a bit longer
 operator_stats_scratch = operator_statistics(date_start = '2018-01-01', date_end = '2019-12-31', tonnage=300)
 }

@@ -2,17 +2,13 @@
 % Please edit documentation in R/update_ais.R
 \name{update_ais_data}
 \alias{update_ais_data}
-\title{Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs}
+\title{Update AIS Database Table}
 \usage{
-update_ais_data(con, links)
+update_ais_data(ais_data = NULL)
 }
-\value{
-new_ais_data data.frame
+\arguments{
+\item{ais_data}{ais_data data.frame}
 }
 \description{
-Update AIS data and Spatial Features data in postgres database.  TODO: HANDLE ERRORS, WARNINGS, EMPTY TXT FILE URLs
-}
-\examples{
-new_ais_data = update_ais_data(con = con, new_links = new_links)
-
+Update AIS Database Table
 }

@@ -1,0 +1,5 @@
+host: database-1.cbh6z8ln2pdp.us-west-2.rds.amazonaws.com
+database: ships4whales
+user: postgres
+port: 5432
+password: whalestrike

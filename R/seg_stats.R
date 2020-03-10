@@ -8,8 +8,8 @@
 #' @export
 #'
 #' @examples
-#' 
-#' ship_stats = ship_statistics(data=vsr_ihs_data ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
+#'
+#'  ship_stats = ship_statistics(data=vsr_ihs_data ,date_start = '2018-01-01', date_end = '2019-11-14', tonnage = 300)
 #' 
 #' ship_statistics from scratch, takes a bit longer
 #' ship_stats = ship_statistics(date_start = '2018-01-01',date_end = '2019-11-14', tonnage=300)
@@ -83,6 +83,8 @@ ship_statistics <- function(data=NULL, date_start=NA, date_end=NA, tonnage=NA,..
     # mean_daily_speed = mean(speed),
     # mean_daily_speed_over_12 = if_else(mean(speed) > 12, 1, 0),
     gt = unique(gt),
+    ship_type = unique(ship_type),
+    ship_type_ihs = unique(shiptype),
     `noaa compliance score (reported speed)` = as.numeric((sum(seg_km [speed<=10 & mean(speed)<=12])/sum(seg_km)*100)),
     `noaa compliance score (calculated speed)` = as.numeric((sum(seg_km [seg_knots<=10 & mean(seg_knots)<=12])/sum(seg_km))*100)),
     by=list(mmsi, name, operator)]

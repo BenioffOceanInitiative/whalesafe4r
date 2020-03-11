@@ -28,7 +28,7 @@ get_ais_data <- function(links=NULL){
 #' Update AIS Database Table
 #'
 #' @param ais_data ais_data data.frame
-#' @importFrom RPostgreSQL dbDisconnect dbWriteTable
+#' @importFrom DBI dbDisconnect dbWriteTable
 #' @export
 
 update_ais_data <- function(ais_data=NULL){
@@ -65,7 +65,8 @@ get_segment_data <- function(ais_data=NULL){
 #'
 #' @param ais_data
 #'
-#' @importFrom RPostgreSQL dbDisconnect dbWriteTable
+#' @importFrom DBI dbDisconnect 
+#' @importFrom sf dbWriteTable
 #' @description Creates database connection and writes new ais segments data frame to the "ais_segments" database table.
 #' 
 #' @examples
@@ -95,7 +96,7 @@ update_segments_data <- function(segs_data=NULL){
 
 #' Get IHS Data
 #'
-#' @importFrom RPostgreSQL dbGetQuery dbDisconnect
+#' @importFrom DBI dbGetQuery dbDisconnect
 #' 
 #' @return ihs_data data.frame
 #' @examples 
@@ -114,8 +115,7 @@ get_ihs_data <- function(){
 #'
 #' @param con Formal class PqConnection
 #'
-#' @importFrom RSQLite dbExecute 
-#' @importFrom RPostgreSQL dbDisconnect
+#' @importFrom DBI dbExecute dbDisconnect
 #' @importFrom sf dbWriteTable
 #' @importFrom dplyr left_join
 #' @examples

@@ -10,7 +10,7 @@ db_connect(db_yml = here::here("s4w_amazon_rds.yml"))
 \item{yml}{yaml metadata for connecting. should contain parameters for: host, database, user, port, password}
 }
 \value{
-database connection object
+con database connection object
 }
 \description{
 Connect to database

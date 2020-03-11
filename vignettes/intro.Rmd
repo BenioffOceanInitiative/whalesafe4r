@@ -10,6 +10,7 @@ vignette: >
 editor_options: 
   chunk_output_type: console
 ---
+Moved from whalesafe4r/vignettes (3/10/2020)
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(

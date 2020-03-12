@@ -1,133 +1,65 @@
 ---
-title: "Basic Ship Reporting"
-author: "Ben Best"
+title: "Vignette Title"
+author: "Vignette Author"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  warning = F,
-  message = F,
-  eval = T)
+  comment = "#>"
+)
 ```
 
-## Load Santa Barbara AIS Ship Data
+Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
 
-Load dataset `sbais` which got ingested from raw data at [`data-raw/2018-06-01_2018-06-07`](https://github.com/mvisalli/shipr/tree/master/data-raw/2018-06-01_2018-06-07) by [`data-raw/sbais.R`](https://github.com/mvisalli/shipr/blob/master/data-raw/sbais.R) using 
-[`read_ais_txt()`](https://mvisalli.github.io/shipr/reference/read_ais_txt.html) in [`R/read.R`](https://github.com/mvisalli/shipr/blob/master/R/read.R).
+- Never uses retina figures
+- Has a smaller default figure size
+- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
 
-And get top 20 vessels with data.
+## Vignette Info
 
-```{r}
-library(tidyverse)
-library(shipr)
-# devtools::install_local(force=T)
-# devtools::document()
-# devtools::load_all()
+Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
 
-# show sbais dataset, lazy loaded
-sbais
+## Styles
 
-# explicitly attach to environment
-data(sbais)
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
 
-sbais %>% 
-  group_by(name) %>% 
-  summarize(n = n()) %>% 
-  arrange(desc(n)) %>% 
-  head(20) %>% 
-  DT::datatable()
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
 ```
 
+You can enable figure captions by `fig_caption: yes` in YAML:
 
-## Analyze Single Ship Data
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
 
-```{r}
-ship_name <- "NAUTILUS"
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
 
-dir_cache <- "~/tmp/shipr"
+## More Examples
 
-# show segments table
-segs <- get_ship_segments(sbais, ship_name, dir_data = dir_cache)
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
 
-# look at ship segments
-hist(segs$seg_kmhr)
-summary(segs$seg_kmhr)
-which(segs$seg_kmhr>100)
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
 ```
 
-## Map Single Ship Line Segments with Speed
+Also a quote using `>`:
 
-```{r}
-map_ship_segments(segs)
-```
-
-## Breakdown Ship Speeds based on Compliance Threshold
-
-```{r}
-lims <- get_ship_limits(segs, limit_knots = 10, ship_name, dir_data = dir_cache)
-
-# show limits table
-lims
-
-map_ship_limits(lims)
-```
-
-## Gauge
-
-```{r}
-pct_dist_ok <- lims %>% 
-  filter(label == "<= 10 knots") %>% 
-  pull(pct_dist)
-
-show_ship_gauge(pct_dist_ok)
-```
-
-## Value Box
-
-```{r}
-show_ship_box(pct_dist_ok)
-```
-
-Note: this value box doesn't really render outside [`flexdashboard`](https://rmarkdown.rstudio.com/flexdashboard) environment.
-
-## Ship Report Card Directory and Cards
-
-Here's an example of using these functions together to create:
-
-* code: [ecoquants/ship-cards](https://github.com/ecoquants/ship-cards)
-* site: [ecoquants.github.io/ship-cards](http://ecoquants.github.io/ship-cards/) with example ship report cards using color coding by [`ship_gauge()`](https://mvisalli.github.io/shipr/reference/ship_gauge.html) and [`ship_box()`](https://mvisalli.github.io/shipr/reference/ship_box.html) in [`R/viz.R`](https://github.com/mvisalli/shipr/blob/master/R/viz.R):
-    * `  >80%`: [Ship Report Card: CHARLES DREW](http://ecoquants.com/ship-cards/ship/CHARLES%20DREW.html)
-    * `40-80%`: [Ship Report Card: CARNIVAL INSPIRATION](http://ecoquants.com/ship-cards/ship/CARNIVAL%20INSPIRATION.html)
-    * `  <40%`: [Ship Report Card: RUBEN LASKER](http://ecoquants.com/ship-cards/ship/RUBEN%20LASKER.html)
-
-## TODO: Next
-
-1. Filter based on shipping lane area. Where are lanes shapefile or larger area to be defined as recommended slowdown area? 
-    
-    - [cajablo/cargo_AIS_tracks: 02_clean-AIS-data-ClassA.R#L102](https://github.com/cajablo/cargo_AIS_tracks/blob/master/02_clean-AIS-data-ClassA.R#L102):
-      
-      ```r
-      lanes <- readOGR("C:/Users/Caroline/Desktop/Caroline ArcGIS/shipping_lanes","shipping_lanes_combined")
-      ```
-
-1. Compare average vessel speed inside and outside the slowdown area.
-
-1. Convert km per hour (`kmhr`) to knots in segment outputs.
-
-1. Loop through rendering all ship cards using parameterized ship_card.Rmd
-
-1. Create directory page to ship cards and summary table of ship stats.
-
-1. Relate ships to organizations.
-
-1. Provide overview statistics for study area.
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))

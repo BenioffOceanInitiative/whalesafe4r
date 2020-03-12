@@ -1,0 +1,134 @@
+---
+title: "Basic Ship Reporting"
+author: "Ben Best"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+Moved from whalesafe4r/vignettes (3/10/2020)
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = F,
+  message = F,
+  eval = T)
+```
+
+## Load Santa Barbara AIS Ship Data
+
+Load dataset `sbais` which got ingested from raw data at [`data-raw/2018-06-01_2018-06-07`](https://github.com/mvisalli/shipr/tree/master/data-raw/2018-06-01_2018-06-07) by [`data-raw/sbais.R`](https://github.com/mvisalli/shipr/blob/master/data-raw/sbais.R) using 
+[`read_ais_txt()`](https://mvisalli.github.io/shipr/reference/read_ais_txt.html) in [`R/read.R`](https://github.com/mvisalli/shipr/blob/master/R/read.R).
+
+And get top 20 vessels with data.
+
+```{r}
+library(tidyverse)
+library(shipr)
+# devtools::install_local(force=T)
+# devtools::document()
+# devtools::load_all()
+
+# show sbais dataset, lazy loaded
+sbais
+
+# explicitly attach to environment
+data(sbais)
+
+sbais %>% 
+  group_by(name) %>% 
+  summarize(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  head(20) %>% 
+  DT::datatable()
+```
+
+
+## Analyze Single Ship Data
+
+```{r}
+ship_name <- "NAUTILUS"
+
+dir_cache <- "~/tmp/shipr"
+
+# show segments table
+segs <- get_ship_segments(sbais, ship_name, dir_data = dir_cache)
+
+# look at ship segments
+hist(segs$seg_kmhr)
+summary(segs$seg_kmhr)
+which(segs$seg_kmhr>100)
+```
+
+## Map Single Ship Line Segments with Speed
+
+```{r}
+map_ship_segments(segs)
+```
+
+## Breakdown Ship Speeds based on Compliance Threshold
+
+```{r}
+lims <- get_ship_limits(segs, limit_knots = 10, ship_name, dir_data = dir_cache)
+
+# show limits table
+lims
+
+map_ship_limits(lims)
+```
+
+## Gauge
+
+```{r}
+pct_dist_ok <- lims %>% 
+  filter(label == "<= 10 knots") %>% 
+  pull(pct_dist)
+
+show_ship_gauge(pct_dist_ok)
+```
+
+## Value Box
+
+```{r}
+show_ship_box(pct_dist_ok)
+```
+
+Note: this value box doesn't really render outside [`flexdashboard`](https://rmarkdown.rstudio.com/flexdashboard) environment.
+
+## Ship Report Card Directory and Cards
+
+Here's an example of using these functions together to create:
+
+* code: [ecoquants/ship-cards](https://github.com/ecoquants/ship-cards)
+* site: [ecoquants.github.io/ship-cards](http://ecoquants.github.io/ship-cards/) with example ship report cards using color coding by [`ship_gauge()`](https://mvisalli.github.io/shipr/reference/ship_gauge.html) and [`ship_box()`](https://mvisalli.github.io/shipr/reference/ship_box.html) in [`R/viz.R`](https://github.com/mvisalli/shipr/blob/master/R/viz.R):
+    * `  >80%`: [Ship Report Card: CHARLES DREW](http://ecoquants.com/ship-cards/ship/CHARLES%20DREW.html)
+    * `40-80%`: [Ship Report Card: CARNIVAL INSPIRATION](http://ecoquants.com/ship-cards/ship/CARNIVAL%20INSPIRATION.html)
+    * `  <40%`: [Ship Report Card: RUBEN LASKER](http://ecoquants.com/ship-cards/ship/RUBEN%20LASKER.html)
+
+## TODO: Next
+
+1. Filter based on shipping lane area. Where are lanes shapefile or larger area to be defined as recommended slowdown area? 
+    
+    - [cajablo/cargo_AIS_tracks: 02_clean-AIS-data-ClassA.R#L102](https://github.com/cajablo/cargo_AIS_tracks/blob/master/02_clean-AIS-data-ClassA.R#L102):
+      
+      ```r
+      lanes <- readOGR("C:/Users/Caroline/Desktop/Caroline ArcGIS/shipping_lanes","shipping_lanes_combined")
+      ```
+
+1. Compare average vessel speed inside and outside the slowdown area.
+
+1. Convert km per hour (`kmhr`) to knots in segment outputs.
+
+1. Loop through rendering all ship cards using parameterized ship_card.Rmd
+
+1. Create directory page to ship cards and summary table of ship stats.
+
+1. Relate ships to organizations.
+
+1. Provide overview statistics for study area.

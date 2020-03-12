@@ -15,32 +15,102 @@ library(janitor)
 library(tidyverse)
 ```
 
-```{r}
-
-
+```{r, fig.width= 20, fig.height= 20}
+# Data Exploration
 #drop NAS only want ships with IHS data
-#sort by NOAA score reported- top 50- export as csv!
+#sort by NOAA score reported-Top performers A+- export as csv!
 #distribution from all IHS data and breakdown of letter grade by type
+#Biggest discrepancies.. biggest players that mis represent?
+#Re categorize for smaller ship type samples
 
 # Arrange Ship Stats By Dropping NAs and rename column of compliance. Arrange in descending order so we can get the top performers that have 100
-stats_head <-ship_stats %>% 
+
+#ship_stats <- ship_stats %>% 
+  #rename(c("com_score_reported" ="compliance score (reported speed)"))
+
+stats_ihs <-ship_stats %>% 
   drop_na() %>% 
-  rename(c("com_score_reported" ="compliance score (reported speed)")) %>% 
   arrange(-com_score_reported)
 
-top_performers <- stats_head %>% 
-  head(111)%>% 
+#111 vessels with A+ /100 score
+
+top_performers <- stats_ihs %>% 
+  head(111) %>% #exported as CSV
   group_by(ship_type_ihs) %>% 
   count(ship_type_ihs)
 
- write.csv(top_performers,"top111_performers.csv")
- 
- ## Distrubution of all letter grades by vessel type
- 
- 
- 
- 
+#Quantity of Each letter grade and ship type 
 
+grades <- stats_ihs %>% 
+  group_by(grade) %>% 
+ count(grade)
+ 
+grade_quantity <- stats_ihs %>% 
+  group_by(grade) %>% 
+  count(ship_type_ihs)
+
+ #Distrubution of all letter grades by vessel type (how many of each vessel type is getting each letter grade)
+letter_plot <- ggplot(grade_quantity, aes(fill= ship_type_ihs, y= n, x=grade)) + 
+    geom_bar(position="stack", stat="identity")
+
+letter_plot
+
+
+```
+
+#Interested in seeing distrubution of categories 
+
+```{r}
+
+ihs_type_category <- stats_ihs %>%
+  mutate(
+    category = case_when(
+      ship_type_ihs %in% c("Tug","Articulated Pusher Tug","Pusher Tug") ~ "Tug",
+      ship_type_ihs %in% c("Bulk Carrier","Vehicles Carrier","Wood Chips Carrier","Heavy Load Carrier","Bulk Carrier, Self-discharging") ~ "Carrier",
+      ship_type_ihs %in% c("Crude Oil Tanker","Chemical/Products Tanker", "Crude/Oil Products Tanker", "Products Tanker", "Replenishment Tanker","LPG Tanker","LNG Tanker","Chemical Tanker") ~ "Tanker",
+      ship_type_ihs %in% c("General Cargo Ship","Replenishment Dry Cargo Vessel","Open Hatch Cargo Ship","Logistics Vessel (Naval Ro-Ro Cargo)","General Cargo Ship (with Ro-Ro facility)","Refrigerated Cargo Ship", "Ro-Ro Cargo Ship" ) ~ "Cargo",
+      ship_type_ihs%in%c("Research Survey Vessel","Fishery Research Vessel") ~"Research",
+      ship_type_ihs%in%c( "Yacht","Yacht (Sailing)") ~"Yacht",
+      ship_type_ihs%in%c( "Passenger/Cruise","Passenger Ship") ~"Passenger",
+      ship_type_ihs%in%c("Landing Craft") ~ "Landing Craft",
+      ship_type_ihs%in%c("Platform Supply Ship") ~"Platform Supply Ship",
+      ship_type_ihs%in%c("Container Ship (Fully Cellular)") ~"Container Ship (Fully Cellular)",
+      ship_type_ihs%in%c("Fishing Vessel") ~ "Fishing Vessel",
+      ship_type_ihs%in%c("Drilling Ship") ~ "Drilling Ship",
+      ship_type_ihs%in%c("Pollution Control Vessel") ~ "Pollution Control Vessel",
+      ship_type_ihs%in%c("Trailing Suction Hopper Dredger") ~ "Trailing Suction Hopper Dredger",
+      ship_type_ihs%in%c("Cable Layer") ~ "Cable Layer",
+      ship_type_ihs%in%c( "Utility Vessel") ~  "Utility Vessel",
+      ship_type_ihs%in%c("Anchor Handling Tug Supply") ~ "Anchor Handling Tug Supply",
+      ship_type_ihs%in%c("Cable Repair Ship") ~ "Cable Repair Ship",
+      ship_type_ihs%in%c("Training Ship") ~ "Training Ship",
+      ship_type_ihs%in%c("Salvage Ship") ~"Salvage Ship",
+      ship_type_ihs%in%c("Hopper, Motor") ~  "Hopper, Motor",
+      ship_type_ihs%in%c("Crew/Supply Vessel") ~ "Crew/Supply Vessel",
+      ship_type_ihs%in%c("Container Ship (Fully Cellular/Ro-Ro Facility)") ~ "Container Ship (Fully Cellular/Ro-Ro Facility)",
+      ship_type_ihs%in%c("Icebreaker") ~ "Icebreaker",
+      ship_type_ihs%in%c("Work/Maintenance Pontoon, non propelled") ~ "Work/Maintenance Pontoon, non propelled",
+      ship_type_ihs%in%c("Frigate") ~ "Frigate"))
+
+# Count Grades Per Category
+category_quantity <- ihs_type_category %>% 
+  group_by(grade) %>% 
+  count(category)
+
+# Now Plot For Categories
+
+letter_plot_category <- ggplot(category_quantity, aes(fill= category, y= n, x=grade)) + 
+    geom_bar(position="stack", stat="identity")
+
+letter_plot_category
+
+                                       
+
+```
+
+# Categories With Time Discrepancies 
+
+```{r}
 
 ```
 

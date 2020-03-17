@@ -15,7 +15,7 @@ library(janitor)
 library(tidyverse)
 ```
 
-```{r, fig.width= 20, fig.height= 20}
+```{r, fig.width= 40, fig.height= 20}
 # Data Exploration
 #drop NAS only want ships with IHS data
 #sort by NOAA score reported-Top performers A+- export as csv!
@@ -60,7 +60,7 @@ letter_plot
 
 #Interested in seeing distrubution of categories 
 
-```{r}
+```{r,fig.width= 50, fig.height= 30}
 
 ihs_type_category <- stats_ihs %>%
   mutate(
@@ -111,6 +111,14 @@ letter_plot_category
 # Categories With Time Discrepancies 
 
 ```{r}
+reporting_differences <- ihs_type_category %>% 
+  mutate(diff_in_score = as.numeric(com_score_reported - `compliance score (calculated speed)`))
+
+category_differnces <- reporting_differences %>% 
+  group_by(category) %>%
+  summarize(total_cat = sum(diff_in_score))
+  
+
 
 ```
 

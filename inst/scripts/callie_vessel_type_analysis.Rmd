@@ -122,4 +122,15 @@ category_differnces <- reporting_differences %>%
 ```
 
 
+#Categories of Main Interst: Tankers, Bulk, and Container - what is all considered "passenger" - Lets look at carrier (bulk), cargo,tankers,container
+
+```{r}
+# filter out for categories of interest
+
+interest <- ihs_type_category %>% 
+  filter(category == "Cargo"| category == "Carrier" | category == "Tanker" | category == "Container Ship")
+
+```
+
+
 

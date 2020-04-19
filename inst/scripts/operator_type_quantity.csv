@@ -1,0 +1,531 @@
+"","operator","ship_type_ihs","n"
+"1","Access Shipping Ltd","Bulk Carrier",1
+"2","Adelfia Navigation SA","Bulk Carrier",1
+"3","Aegean Bulk Co Inc","Bulk Carrier",1
+"4","AET Inc Ltd","Crude Oil Tanker",3
+"5","Alaska Tanker Co LLC","Crude Oil Tanker",2
+"6","Alaska Uni Seward Marine","Research Survey Vessel",1
+"7","Albatross Marine SA","Bulk Carrier",1
+"8","Alchemy Ventures Ltd","Yacht",1
+"9","Almi Tankers SA","Crude Oil Tanker",2
+"10","Alterna Capital Partners LLC","Chemical/Products Tanker",2
+"11","AM Nomikos Transworld Maritime","Bulk Carrier",1
+"12","American Cruise Lines Inc","Passenger/Cruise",1
+"13","American Marine Corp","Tug",1
+"14","American Petroleum Tankers LLC","Chemical/Products Tanker",1
+"15","American Roll-on Roll-off","Vehicles Carrier",2
+"16","Amnav Maritime Corp","Tug",3
+"17","ANL Container Line Pty Ltd","Container Ship (Fully Cellular)",1
+"18","Antipaxos Shipping Corp","Products Tanker",1
+"19","APL LLC","Container Ship (Fully Cellular)",26
+"20","Ardmore MR Pool LLC","Chemical/Products Tanker",4
+"21","Arran Point Charters Ltd","Yacht",2
+"22","Associated Maritime Co HK Ltd","Crude Oil Tanker",5
+"23","Astra Shipmanagement Inc","Products Tanker",1
+"24","Atlantis Management Inc","Bulk Carrier",2
+"25","Atlas Ocean Towing LLC","Tug",1
+"26","Avalon Freight Services LLC","Landing Craft",1
+"27","AW Ship Management Ltd","Yacht",1
+"28","Bastila Ship Management Pvt","Products Tanker",1
+"29","Baydelta Navigation Ltd","Tug",1
+"30","BBC Chartering & Logistic GmbH","General Cargo Ship",9
+"31","Benetech Shipping SA","Chemical/Products Tanker",1
+"32","Bergshav Management AS","Crude Oil Tanker",1
+"33","BG Shipping Co Ltd-HKG","Bulk Carrier",1
+"34","Blue Fin Tankers Inc","Crude Oil Tanker",3
+"35","Blue Ocean Marine LLC","Platform Supply Ship",2
+"36","Bold Horizon LLC","Research Survey Vessel",1
+"37","Boyer Towing Inc","Tug",2
+"38","Brusco Tug & Barge Inc","Tug",6
+"39","Burgess N","Yacht",1
+"40","Byzantine Maritime Corp","Bulk Carrier",1
+"41","C Transport Maritime SAM","Crude Oil Tanker",1
+"42","California State","Fishing Vessel",1
+"43","Canada Govt National Defence","Frigate",2
+"44","Canfornav Inc","Bulk Carrier",1
+"45","Cape Tankers Inc","Crude Oil Tanker",1
+"46","Cape Tankers Inc","Crude/Oil Products Tanker",4
+"47","Capital Ship Management Corp","Crude/Oil Products Tanker",2
+"48","Cargill International SA","Bulk Carrier",2
+"49","Carnival Cruise Line","Passenger/Cruise",5
+"50","Catalina Classic Cruises Inc","Passenger Ship",1
+"51","Catalina Express","Passenger Ship",5
+"52","CCCC First Harbor Engineering","Hopper, Motor",1
+"53","Celebrity Cruises Inc","Passenger/Cruise",2
+"54","Central Mare Inc","Chemical/Products Tanker",1
+"55","Century Bulk Carriers Mgmt Co","Bulk Carrier",1
+"56","Champion Tankers AS","Chemical/Products Tanker",4
+"57","Chandris Hellas Inc","Crude Oil Tanker",1
+"58","Chembulk Ocean Transport LLC","Chemical/Products Tanker",1
+"59","Chemical Clipper Transports SA","Chemical/Products Tanker",1
+"60","Cheramie Marine LLC","Platform Supply Ship",3
+"61","Chevron Shipping Co LLC","Crude Oil Tanker",4
+"62","Chevron Shipping Co LLC","Crude/Oil Products Tanker",1
+"63","Chevron Shipping Co LLC","Products Tanker",1
+"64","Chevron Transport Corp Ltd","Crude Oil Tanker",2
+"65","China Merchants Energy Shpg","Crude Oil Tanker",1
+"66","China Navigation Co Pte Ltd","Bulk Carrier",9
+"67","China Navigation Co Pte Ltd","Container Ship (Fully Cellular)",1
+"68","Chinese-Polish Joint Stock","General Cargo Ship",4
+"69","Chios Navigation Hellas Ltd","Bulk Carrier",1
+"70","Chowgule Steamships Ltd","Bulk Carrier",3
+"71","Chugoku Sougyo Co Ltd","Bulk Carrier",1
+"72","Chugoku Sougyo Co Ltd","Wood Chips Carrier",2
+"73","Cido Shipping HK Co Ltd","Bulk Carrier",3
+"74","Ciner Ship Management","Bulk Carrier",1
+"75","CIT Bank NA","Tug",1
+"76","Clearlake Shipping Pte Ltd","Crude/Oil Products Tanker",1
+"77","Clearlake Shipping Pte Ltd","Products Tanker",1
+"78","Clipper Bulk Shipping Ltd","Bulk Carrier",1
+"79","CMA CGM SA The French Line","Container Ship (Fully Cellular)",28
+"80","CMB NV","Chemical/Products Tanker",1
+"81","Cobelfret NV","Bulk Carrier",1
+"82","COSCO Shipping Energy Trans","Crude Oil Tanker",1
+"83","COSCO Shipping Lines Co Ltd","Container Ship (Fully Cellular)",35
+"84","COSCO Shipping Singapore Pte","Bulk Carrier",1
+"85","COSCO Shipping Specialized","Vehicles Carrier",1
+"86","Costa Crociere SpA","Passenger/Cruise",1
+"87","CPTA","Chemical/Products Tanker",5
+"88","CPTA","Products Tanker",1
+"89","Crowley Alaska Tankers LLC","Crude Oil Tanker",1
+"90","Crowley Marine Services Inc","Articulated Pusher Tug",5
+"91","Crowley Maritime Corp","Tug",2
+"92","Crowley Petroleum Services Inc","Chemical/Products Tanker",4
+"93","Crystal Cruises LLC","Passenger/Cruise",1
+"94","CSAV","Vehicles Carrier",2
+"95","CSL Americas","Bulk Carrier, Self-discharging",5
+"96","CSL Group Inc","Bulk Carrier, Self-discharging",2
+"97","Curtin Maritime Corp","Tug",6
+"98","d'Amato Fratelli SpA","Bulk Carrier",1
+"99","d'Amico Dry DAC","Bulk Carrier",3
+"100","Daido Kaiun Co Ltd","Bulk Carrier",1
+"101","Dakota Tankers Pool","Crude Oil Tanker",1
+"102","Dana Wharf Sportfishing","Yacht",1
+"103","Dava Pte Ltd","Bulk Carrier",1
+"104","DB Marine Consulting","Yacht",1
+"105","DBCN Corp","Bulk Carrier",1
+"106","Delek Transport Agency Inc","Bulk Carrier",1
+"107","Densay Shipping & Trading DMCC","Chemical/Products Tanker",1
+"108","DHT Management AS","Crude Oil Tanker",4
+"109","Diamlemos Shipping Corp","Crude/Oil Products Tanker",1
+"110","Diamond Bulk Carriers Pte Ltd","Bulk Carrier",1
+"111","Diamond S Management LLC","Chemical/Products Tanker",1
+"112","Diamond S Management LLC","Crude Oil Tanker",1
+"113","Dohle Private Clients Ltd","Yacht (Sailing)",1
+"114","Doun Kisen Co Ltd","Bulk Carrier",3
+"115","Dowa Line Co Ltd","General Cargo Ship",1
+"116","Dynacom Tankers Management Ltd","Crude Oil Tanker",4
+"117","Eagle Bulk Shipping Inc","Bulk Carrier",2
+"118","Eastern Car Liner Ltd","General Cargo Ship",1
+"119","Eastern Car Liner Ltd","General Cargo Ship (with Ro-Ro facility)",1
+"120","Eastern Car Liner Ltd","Vehicles Carrier",2
+"121","Eastern Pacific Shipping Pte","Crude Oil Tanker",3
+"122","Edge Yachts Ltd","Yacht",1
+"123","Edison Chouest Offshore LLC","Research Survey Vessel",1
+"124","Eletson Corp","Chemical/Products Tanker",1
+"125","Eletson Corp","Crude Oil Tanker",2
+"126","Empire Navigation Inc","Chemical/Products Tanker",1
+"127","EUKOR Car Carriers Inc","Vehicles Carrier",24
+"128","Euronav NV","Crude Oil Tanker",5
+"129","Euronav Ship Management","Crude Oil Tanker",1
+"130","Evergreen Marine Corp","Container Ship (Fully Cellular)",40
+"131","Exeno Yamamizu Corp","Open Hatch Cargo Ship",1
+"132","Fairfield Chemical Carriers","Chemical/Products Tanker",1
+"133","Fairfield-Maxwell Services Ltd","Vehicles Carrier",1
+"134","Fairport Yacht Support","Yacht",1
+"135","Falcon Navigation Corp","Chemical/Products Tanker",1
+"136","Far East Shipping & Trading Co","Bulk Carrier",1
+"137","Far-East Transport Co Ltd","Bulk Carrier",1
+"138","Far-East Transport Co Ltd","Wood Chips Carrier",1
+"139","Fifth Engineering Co of CCCC","Hopper, Motor",1
+"140","First Marine Service Co Ltd","Open Hatch Cargo Ship",1
+"141","FLOPEC","Crude/Oil Products Tanker",1
+"142","Formosa Plastics Marine Corp","Chemical/Products Tanker",2
+"143","Fortuna Seaside Bulk Carriers","Bulk Carrier",1
+"144","Foss Maritime Co","Crew/Supply Vessel",1
+"145","Foss Maritime Co","Tug",5
+"146","Franco Naviera Co SA","Bulk Carrier",2
+"147","Fraser Yachts Florida Inc","Yacht",2
+"148","Frontline Ltd","Crude Oil Tanker",1
+"149","Furness Withy Australia","Bulk Carrier",2
+"150","G2 Ocean AS","General Cargo Ship",4
+"151","G2 Ocean AS","Open Hatch Cargo Ship",2
+"152","Galliano Marine Service LLC","Tug",2
+"153","GB Shipping & Chartering GmbH","General Cargo Ship",1
+"154","GENCO","Bulk Carrier",1
+"155","Genel Denizcilik Nakliyati AS","Crude Oil Tanker",3
+"156","General National Maritime","Crude Oil Tanker",4
+"157","Global Feeder Shipping Pte Ltd","Container Ship (Fully Cellular)",1
+"158","Global Marine Systems Ltd","Cable Layer",1
+"159","Global Marine Systems Ltd","Cable Repair Ship",1
+"160","Global Maritime Investment-CYP","Bulk Carrier",1
+"161","Go Shipping & Management Inc","Ro-Ro Cargo Ship",1
+"162","Golden Energy Management SA","Crude/Oil Products Tanker",2
+"163","Golden Gate Bridge","Passenger Ship",1
+"164","Golden Ocean Group Ltd","Bulk Carrier",2
+"165","Golden Union Maritime Ops SA","Bulk Carrier",1
+"166","Goulandris Maritime Inc","Crude/Oil Products Tanker",2
+"167","Great Eastern Shipping Co Ltd","Chemical/Products Tanker",2
+"168","Great White Fleet Ltd","Container Ship (Fully Cellular)",2
+"169","Greathorse Shipping Ltd","Chemical/Products Tanker",1
+"170","Greenpeace Council Stichting","Yacht",1
+"171","Greger Pacific Marine Inc","Tug",1
+"172","Gregg Drilling & Testing","Drilling Ship",1
+"173","Grindrod Shipping Pte Ltd","Bulk Carrier",1
+"174","Gulf Energy Maritime GEM PJSC","Products Tanker",1
+"175","Gulf Offshore Logistics LLC","Platform Supply Ship",1
+"176","Hafnia MR Pool Management ApS","Chemical/Products Tanker",1
+"177","Hafnia MR Pool Management ApS","Products Tanker",1
+"178","Hafnia Pte Ltd","Chemical/Products Tanker",1
+"179","Hafnia Pte Ltd","Products Tanker",2
+"180","Hainan Haisheng Shipping Co","Bulk Carrier",1
+"181","Hakuyo Kisen KK","Bulk Carrier",1
+"182","Halifax Holdings Ltd","Yacht",1
+"183","Hamburg Sudamerikanische","Container Ship (Fully Cellular)",6
+"184","Handytankers K/S","Chemical/Products Tanker",1
+"185","Handytankers K/S","Products Tanker",1
+"186","Hansa Tankers AS","Chemical/Products Tanker",1
+"187","Hapag-Lloyd AG","Container Ship (Fully Cellular)",21
+"188","Harbor Breeze Corp","Passenger Ship",3
+"189","Harley Marine Services Inc","Articulated Pusher Tug",1
+"190","Harley Marine Services Inc","Tug",1
+"191","Hartree Partners LP","Products Tanker",1
+"192","Harvey Gulf Intl Marine LLC","Platform Supply Ship",1
+"193","Hayama Senpaku KK","Bulk Carrier",2
+"194","Hill Robinson Intl-USA","Yacht",1
+"195","HMC Shipmanagement Co Ltd","Bulk Carrier",1
+"196","Hoegh Autoliners Management AS","Vehicles Carrier",4
+"197","Holland America Line NV","Passenger/Cruise",4
+"198","Hornbeck Offshore Services LLC","Platform Supply Ship",1
+"199","Hornblower Cruises & Events","Passenger Ship",1
+"200","Hotel Whiskey LLC","Yacht",1
+"201","Hsin Chien Marine Co Ltd-CHT","Bulk Carrier",3
+"202","Hurtigruten Cruise AS","Passenger/Cruise",1
+"203","Hyundai Glovis Co Ltd","Vehicles Carrier",21
+"204","Hyundai Merchant Marine Co Ltd","Container Ship (Fully Cellular)",17
+"205","Hyundai Merchant Marine Co Ltd","Crude Oil Tanker",1
+"206","Iino Kaiun Kaisha Ltd","Bulk Carrier",1
+"207","Iino Kaiun Kaisha Ltd","Chemical/Products Tanker",1
+"208","Innersea Discoveries LLC","Passenger/Cruise",1
+"209","Interlink Maritime Corp","Bulk Carrier",1
+"210","Interunity Management Corp SA","Crude/Oil Products Tanker",1
+"211","Intrepid Ship Management Inc","Articulated Pusher Tug",1
+"212","Inui Global Logistics Co Ltd","Bulk Carrier",3
+"213","Inui Global Logistics Co Ltd","Open Hatch Cargo Ship",1
+"214","Ionic Shipping Mgt Inc","Bulk Carrier",1
+"215","Iraq Govt Maritime Transport","General Cargo Ship",1
+"216","IT International Telecom Inc","Cable Repair Ship",1
+"217","Jal Pari Pte Ltd","Products Tanker",1
+"218","Jazzy Shipmanagement Co","Bulk Carrier",1
+"219","Jierui Shipping Co Ltd","Bulk Carrier",1
+"220","K Line Bulk Shipping UK Ltd","Bulk Carrier",3
+"221","K Line RoRo Bulk Ship Mgmt Co","Bulk Carrier",2
+"222","K-Sea Operating LLC","Tug",1
+"223","Kawasaki Kisen Kaisha Ltd","Bulk Carrier",1
+"224","Kawasaki Kisen Kaisha Ltd","Vehicles Carrier",27
+"225","Kawasaki Kisen Kaisha Ltd","Wood Chips Carrier",2
+"226","Keiyo Kisen KK","Bulk Carrier",1
+"227","Keizen Ship Management Co Ltd","Bulk Carrier",1
+"228","Kirby Offshore Marine Op","Tug",1
+"229","Kmarin","Bulk Carrier",1
+"230","Kobe Shipmanagement Co Ltd","Open Hatch Cargo Ship",1
+"231","Koch Shipping Pte Ltd","Chemical/Products Tanker",1
+"232","Koch Shipping Pte Ltd","Crude Oil Tanker",1
+"233","Korea Marine Transport Co Ltd","Container Ship (Fully Cellular)",1
+"234","Kyoei Tanker Co Ltd","Bulk Carrier",1
+"235","Last Straw Ltd","Fishing Vessel",1
+"236","Latsco Marine Management Inc","LPG Tanker",1
+"237","Lauritzen Bulkers A/S","Bulk Carrier",2
+"238","Lauritzen Bulkers A/S","Open Hatch Cargo Ship",1
+"239","Liberty Maritime Corp","Vehicles Carrier",1
+"240","Lighthouse Navigation Co Ltd","Bulk Carrier",1
+"241","Lindblad Expeditions LLC","Passenger/Cruise",3
+"242","Liocensa Investments Ltd","Yacht",2
+"243","Maersk A/S","Container Ship (Fully Cellular)",43
+"244","Maersk Supply Service AS","Anchor Handling Tug Supply",2
+"245","Magical Cruise Co Ltd","Passenger/Cruise",1
+"246","Mansel Ltd","Crude Oil Tanker",1
+"247","Mansel Pte Ltd","Chemical/Products Tanker",2
+"248","Manson Construction Co","Trailing Suction Hopper Dredger",1
+"249","Manson Construction Co","Tug",1
+"250","Manta Maritime Ltd","Yacht",1
+"251","Maple Leaf Shipping Co Ltd","Bulk Carrier",1
+"252","Maran Gas Maritime Inc","LNG Tanker",1
+"253","Maran Tankers Management Inc","Crude Oil Tanker",1
+"254","Marflet Marine SA","Chemical/Products Tanker",1
+"255","Marina LLC","Fishing Vessel",2
+"256","Marine Capital Ltd","Bulk Carrier",1
+"257","Marine Construction Mgmt","Yacht",1
+"258","Marine Spill Response Corp","Pollution Control Vessel",1
+"259","Marinsa Denizcilik AS","Bulk Carrier",1
+"260","Maritime Logistics Inc","Training Ship",1
+"261","Marks Marine Services Inc","Platform Supply Ship",1
+"262","Marla Dry Bulk Shipmanagement","Bulk Carrier",1
+"263","Marujyu Bulk Carriers SA","Open Hatch Cargo Ship",1
+"264","Massoel Shipping SA","Bulk Carrier",1
+"265","Matson Navigation Co Inc","Container Ship (Fully Cellular)",10
+"266","Matson Navigation Co Inc","Container Ship (Fully Cellular/Ro-Ro Facility)",1
+"267","Medstar Shipmanagement Ltd","General Cargo Ship",1
+"268","Meritshipping Co Ltd","Bulk Carrier",1
+"269","Millennium Maritime Inc","Tug",1
+"270","Minamoto Kisen Corp Ltd","Bulk Carrier",1
+"271","Minerva Marine Inc","Chemical/Products Tanker",1
+"272","Minerva Marine Inc","Crude Oil Tanker",1
+"273","Misuga Kaiun Co Ltd","Bulk Carrier",1
+"274","Mitsubishi Ore Transport Co","Bulk Carrier",2
+"275","Mitsubishi Ore Transport Co","Wood Chips Carrier",2
+"276","Mitsui OSK Lines Ltd","Bulk Carrier",5
+"277","Mitsui OSK Lines Ltd","Vehicles Carrier",27
+"278","MMSL Pte Ltd","Bulk Carrier",1
+"279","MOL Chemical Tankers Pte Ltd","Chemical Tanker",1
+"280","MOL Chemical Tankers Pte Ltd","Chemical/Products Tanker",11
+"281","Monterey Bay Aquarium Research","Research Survey Vessel",1
+"282","Moore K","Yacht",2
+"283","MSC Mediterranean Shipping Co","Container Ship (Fully Cellular)",53
+"284","MTM Ship Management Pte Ltd","Bulk Carrier",2
+"285","MUR Shipping BV","Bulk Carrier",1
+"286","MX Bulk Ltd","Bulk Carrier",1
+"287","NAT Chartering Ltd","Crude Oil Tanker",2
+"288","Navarone SA","Bulk Carrier",1
+"289","Navig8 Bulk Ultra8 Pool","Bulk Carrier",1
+"290","Navig8 Chemical Alta8 Pool","Chemical/Products Tanker",9
+"291","Navig8 Chemical Chronos8 Pool","Chemical/Products Tanker",2
+"292","Navig8 Chemical Delta8 Pool","Chemical/Products Tanker",1
+"293","Navig8 Chemical Stainless8","Chemical/Products Tanker",5
+"294","Navig8 LR8 Pool","Crude/Oil Products Tanker",2
+"295","Navig8 MR Tanker Pool","Chemical/Products Tanker",2
+"296","Navios Shipmanagement Inc","Bulk Carrier",2
+"297","NCL Bahamas Ltd","Passenger/Cruise",3
+"298","Neptune Dry Management Co","Bulk Carrier",3
+"299","Neptune Line Navigation SA","Vehicles Carrier",1
+"300","New Shipping Ltd-LIB","Crude Oil Tanker",2
+"301","New Trade Ship Management SA","Bulk Carrier",1
+"302","Nissan Motor Car Carrier","Vehicles Carrier",3
+"303","Nisshin Shipping Co Ltd","Bulk Carrier",1
+"304","Nitta Kisen Kaisha Ltd","Bulk Carrier",1
+"305","Noma Shipping Co Ltd","Bulk Carrier",1
+"306","Norden A/S Dampskibsselskabet","Bulk Carrier",3
+"307","Norden A/S Dampskibsselskabet","Chemical/Products Tanker",1
+"308","Nordic Hamburg Shipmgmt GmbH","Bulk Carrier",1
+"309","Nordic Womar Pte Ltd","Chemical/Products Tanker",1
+"310","Norient Product Pool ApS","Chemical/Products Tanker",2
+"311","Norient Product Pool ApS","Products Tanker",1
+"312","Norseman Maritime Charters","Fishing Vessel",1
+"313","NSB Niederelbe Schiffahrtsges","Container Ship (Fully Cellular)",1
+"314","NYK Bulk & Projects Carriers","General Cargo Ship (with Ro-Ro facility)",1
+"315","NYK Bulk & Projects Carriers","Heavy Load Carrier",1
+"316","NYK Bulk & Projects Carriers","Open Hatch Cargo Ship",1
+"317","NYK Line","Bulk Carrier",5
+"318","NYK Line","LPG Tanker",1
+"319","NYK Line","Vehicles Carrier",55
+"320","NYKCOS Car Carrier Co Ltd","Vehicles Carrier",1
+"321","Ocean Longevity Shipping","Bulk Carrier",1
+"322","Ocean Marine Services LLC","Platform Supply Ship",2
+"323","Ocean Network Express Pte Ltd","Container Ship (Fully Cellular)",73
+"324","OceanGold Tankers Inc","Chemical/Products Tanker",1
+"325","Oceania Cruises Inc","Passenger/Cruise",1
+"326","Oceanic Marine Management-IOM","Bulk Carrier",1
+"327","Odfjell Tankers AS","Chemical/Products Tanker",1
+"328","Offshore Outpost Boat LLC","Fishing Vessel",1
+"329","Oldendorff Carriers GmbH & Co","Bulk Carrier",12
+"330","Oldendorff Carriers GmbH & Co","Open Hatch Cargo Ship",1
+"331","Olympic Shipping & Management","Crude Oil Tanker",2
+"332","Olympic Tug & Barge Inc","Articulated Pusher Tug",1
+"333","Olympic Tug & Barge Inc","Tug",5
+"334","Oman Shipping Co SAOC","Crude Oil Tanker",1
+"335","Onward Marine Service Co Ltd","Bulk Carrier",2
+"336","Oregon State Univ - CEOAS","Research Survey Vessel",1
+"337","Orient Express Lines Inc","Container Ship (Fully Cellular)",1
+"338","Orient Overseas Container Line","Container Ship (Fully Cellular)",12
+"339","Orion Reederei GmbH & Co KG","Bulk Carrier",1
+"340","OSG Ship Management Inc","Chemical/Products Tanker",3
+"341","P&F Marine Co Ltd","Bulk Carrier",1
+"342","Pacific Basin Shipping HK Ltd","Bulk Carrier",25
+"343","Pacific Basin Shipping Ltd","Bulk Carrier",2
+"344","Pacific Carriers Ltd","Bulk Carrier",2
+"345","Pacific Horizon Fishing LLC","Fishing Vessel",1
+"346","Pacific International Lines","Container Ship (Fully Cellular)",11
+"347","Pacific Marine Logistics Inc","Yacht",1
+"348","Pacific Ship Management Co Ltd","General Cargo Ship (with Ro-Ro facility)",1
+"349","Pan Ocean Co Ltd","Chemical/Products Tanker",2
+"350","Panamax International LLC","Chemical/Products Tanker",1
+"351","Panamax International LLC","Crude Oil Tanker",5
+"352","Panamax International LLC","Crude/Oil Products Tanker",5
+"353","Panamax International LLC","Products Tanker",5
+"354","Pantheon Tankers Management","Crude Oil Tanker",3
+"355","Parakou Tankers Singapore Pte","Chemical/Products Tanker",1
+"356","Pasha Hawaii Holdings LLC","Container Ship (Fully Cellular)",4
+"357","Pasha Hawaii Holdings LLC","Ro-Ro Cargo Ship",1
+"358","Patricia Ship Holding SA","Vehicles Carrier",1
+"359","PCL Shipping Pte Ltd","Bulk Carrier",2
+"360","Penfield Marine LLC","Crude/Oil Products Tanker",6
+"361","Perseveranza SpA di Navigazion","Chemical/Products Tanker",1
+"362","PETROBRAS","Crude Oil Tanker",1
+"363","Pettinger DW","Fishing Vessel",1
+"364","Pettittco Ltd","Yacht",1
+"365","Phillips 66 Co","Crude/Oil Products Tanker",1
+"366","Phoenix Reisen GmbH","Passenger/Cruise",1
+"367","Pioneer Marine Advisers Pte","Bulk Carrier",2
+"368","Pleiades Shipping Agents SA","Chemical/Products Tanker",1
+"369","Pleiades Shipping Agents SA","Crude Oil Tanker",3
+"370","Pluto Partners Co Ltd","Bulk Carrier",1
+"371","Pola Maris NV","Bulk Carrier",1
+"372","Polar Tankers Inc","Crude Oil Tanker",3
+"373","PONANT","Passenger/Cruise",1
+"374","Poseidon SA","Chemical/Products Tanker",1
+"375","Precious Shipping PCL","Bulk Carrier",3
+"376","Primebulk Shipmanagement Ltd","Bulk Carrier",2
+"377","Princess Cruise Lines Ltd","Passenger/Cruise",9
+"378","Product Shipping & Trading SA","Crude/Oil Products Tanker",1
+"379","Quogue LLC","Yacht",1
+"380","RAS I LLC","Yacht",1
+"381","Rebel Ltd","Yacht",1
+"382","Regent Seven Seas Cruises Inc","Passenger/Cruise",1
+"383","Richmond Tanker LLC","Products Tanker",1
+"384","Rickmers-Linie","General Cargo Ship",2
+"385","Rudolf A Oetker A/S & Co KG","Bulk Carrier",2
+"386","Safe Bulkers Inc","Bulk Carrier",2
+"387","Saga Welco AS","Open Hatch Cargo Ship",11
+"388","Samartzis Maritime Enterprises","Bulk Carrier",1
+"389","Samos Steamship Co","Chemical/Products Tanker",1
+"390","San Diego Towing & Marine","Tug",2
+"391","San Francisco Bay Ferry","Passenger Ship",1
+"392","Sanko Steamship Co Ltd","Bulk Carrier",1
+"393","Sankyo Commercial","Bulk Carrier",2
+"394","Santoku Senpaku Co Ltd","Bulk Carrier",2
+"395","Sato Steamship Co Ltd","Bulk Carrier",2
+"396","Sato Steamship Co Ltd","Wood Chips Carrier",2
+"397","Sause Bros Inc","Tug",11
+"398","SCF Management Services Dubai","Chemical/Products Tanker",1
+"399","Scorpio Carriers Ltd-HK","Bulk Carrier",1
+"400","Scorpio Commercial Management","Chemical/Products Tanker",1
+"401","Scorpio MR Pool Ltd","Chemical/Products Tanker",7
+"402","Scripps Institution SIO","Research Survey Vessel",1
+"403","Seabourn Cruise Line Ltd","Passenger/Cruise",1
+"404","Seabulk Fleet Management LLC","Vehicles Carrier",2
+"405","Seabulk Towing Inc","Tug",1
+"406","Sealestial Navigation Co","Bulk Carrier",1
+"407","Seastar Chartering Ltd","Bulk Carrier",1
+"408","Seastar Shipmanagement Ltd","Bulk Carrier",1
+"409","Seraphic Maritime SA","General Cargo Ship",1
+"410","Seven Seas Carriers AS","Bulk Carrier",1
+"411","Shandong Shipping Corp","Bulk Carrier",1
+"412","Shanghai Salvage Co","Work/Maintenance Pontoon, non propelled",1
+"413","Shanghai Tucson Roy Shp Mgmt","Crude Oil Tanker",1
+"414","Shih Wei Navigation Co Ltd","Bulk Carrier",2
+"415","Shikishima Kisen KK","Bulk Carrier",2
+"416","Shikishima Kisen KK","Wood Chips Carrier",1
+"417","Shunzan Kaiun KK","Bulk Carrier",1
+"418","Sidra Ship Management Inc","Products Tanker",2
+"419","Siem Car Carriers AS","Vehicles Carrier",2
+"420","Sincere Industrial Corp","Open Hatch Cargo Ship",1
+"421","Sinokor Bulk Pte Ltd","Bulk Carrier",1
+"422","Sinokor Maritime Co Ltd","Chemical/Products Tanker",3
+"423","Sinokor Merchant Marine Co Ltd","Container Ship (Fully Cellular)",1
+"424","Sinokor Petrochemical Co Ltd","Chemical/Products Tanker",1
+"425","SM Line Corp","Container Ship (Fully Cellular)",8
+"426","Snow Camellia Maritime Co Ltd","Wood Chips Carrier",1
+"427","So Cal Ship Services","Crew/Supply Vessel",1
+"428","So Cal Ship Services","Pollution Control Vessel",1
+"429","So Cal Ship Services","Utility Vessel",1
+"430","Soki Kisen KK","Bulk Carrier",1
+"431","Spar Shipping AS","Bulk Carrier",1
+"432","Spliethoff's Bevrachtings BV","General Cargo Ship",1
+"433","SPS Maritime Ltd","Research Survey Vessel",1
+"434","ST Shipping & Transport Pte","Crude/Oil Products Tanker",3
+"435","Star Reefers Pool Inc","Refrigerated Cargo Ship",3
+"436","Starbulk SA","Bulk Carrier",3
+"437","STASCO","Chemical/Products Tanker",3
+"438","Stealth Maritime Corp SA","Chemical/Products Tanker",4
+"439","Stena Sonangol Suezmax Pool","Crude Oil Tanker",3
+"440","Stena Sonangol Suezmax Pool","Crude/Oil Products Tanker",1
+"441","Stolt Tankers BV","Chemical/Products Tanker",4
+"442","Straits Tankers Pte Ltd","Products Tanker",2
+"443","Sucden Armateurs Sarl","Bulk Carrier",2
+"444","Sugahara Kisen KK","Bulk Carrier",1
+"445","Suisse-Atlantique","Bulk Carrier",1
+"446","Sun Enterprises Ltd-LIB","Crude/Oil Products Tanker",1
+"447","Sun Oil Co of Pennsylvania","Crude Oil Tanker",1
+"448","Super-Eco Bulkers Management","Bulk Carrier",1
+"449","Sverre Farstad & Co AS","Platform Supply Ship",2
+"450","SwissMarine Services SA","Bulk Carrier",4
+"451","SYM EURL","Yacht",1
+"452","Ta-Tong Marine Co Ltd","Bulk Carrier",1
+"453","Tabuchi Kaiun Co Ltd","Chemical Tanker",1
+"454","Tachibana Kaiun YK","Bulk Carrier",1
+"455","Taiheiyo Kisen","Bulk Carrier",1
+"456","Taiwan Navigation Co Ltd","Bulk Carrier",2
+"457","Tankers UK Agencies Ltd","Crude Oil Tanker",4
+"458","Tankerska Plovidba dd","Bulk Carrier",1
+"459","Target Marine SA","Bulk Carrier",1
+"460","Taylor Maritime HK Ltd","Open Hatch Cargo Ship",3
+"461","Technomar Shipping Inc-LIB","Bulk Carrier",1
+"462","Teekay Chartering Ltd","Crude Oil Tanker",2
+"463","Teekay Chartering Ltd","Crude/Oil Products Tanker",1
+"464","Temple Marine Ltd","Yacht",1
+"465","Tianjin New Legend Shipping Co","General Cargo Ship",1
+"466","Toko Kaiun Kaisha Ltd","Open Hatch Cargo Ship",3
+"467","Toner Technical & Marine Ltd","Research Survey Vessel",1
+"468","TORM A/S","Chemical/Products Tanker",14
+"469","TORM A/S","Crude/Oil Products Tanker",1
+"470","TORM A/S","Products Tanker",1
+"471","Toyo Kaiun Co Ltd","Wood Chips Carrier",1
+"472","Toyofuji Shipping Co Ltd","Vehicles Carrier",1
+"473","TradeWinds Towing LLC","Tug",2
+"474","Trafigura Maritime Logistics","Chemical/Products Tanker",5
+"475","Trafigura Maritime Logistics","Crude Oil Tanker",2
+"476","Transocean Maritime Agencies","Bulk Carrier",2
+"477","Triton Navigation BV","Vehicles Carrier",1
+"478","TS Lines Co Ltd","Container Ship (Fully Cellular)",2
+"479","Tsakos Commerce SA","Crude/Oil Products Tanker",1
+"480","Tsakos Shipping & Trading SA","Crude Oil Tanker",2
+"481","Tsakos Shipping & Trading SA","Crude/Oil Products Tanker",1
+"482","Tsurumi Kisen Co Ltd","Bulk Carrier",1
+"483","TVI Ltd","Yacht",1
+"484","Ultrabulk A/S","Bulk Carrier",7
+"485","Uni Ships & Management Ltd","Bulk Carrier",1
+"486","Unico Logistics Co Ltd","Bulk Carrier",1
+"487","Uniper Global Commodities SE","Bulk Carrier",1
+"488","Unisea Shipping Ltd","Crude Oil Tanker",4
+"489","Unison Marine Corp","Bulk Carrier",1
+"490","United Ocean Ship Mgmt Pte Ltd","Vehicles Carrier",1
+"491","United States Govt","Salvage Ship",1
+"492","United States Govt Coast Guard","Buoy Tender",3
+"493","United States Govt Coast Guard","Icebreaker",1
+"494","United States Govt MSC","Logistics Vessel (Naval Ro-Ro Cargo)",2
+"495","United States Govt MSC","Replenishment Dry Cargo Vessel",1
+"496","United States Govt MSC","Replenishment Tanker",1
+"497","United States Govt NOAA Fish","Fishery Research Vessel",1
+"498","United States Govt NOAA Marine","Fishery Research Vessel",1
+"499","United States Govt NOAA Marine","Research Survey Vessel",4
+"500","UPT United Product Tankers","Chemical/Products Tanker",1
+"501","US Ocean LLC","General Cargo Ship",1
+"502","Vane Line Bunkering Inc","Articulated Pusher Tug",1
+"503","Vane Line Bunkering Inc","Pusher Tug",1
+"504","Vane Line Bunkering Inc","Tug",3
+"505","Velvet Maritime Co","Bulk Carrier",1
+"506","Vessel Safety Management","Yacht",1
+"507","Victoria Barco SA","Wood Chips Carrier",1
+"508","Vietnam Gas & Chemicals","Chemical/Products Tanker",1
+"509","Viken Shipping AS","Crude Oil Tanker",1
+"510","WA Tankers AS","Chemical/Products Tanker",1
+"511","Wah Kwong Ship Management HK","Crude Oil Tanker",1
+"512","Wallem Commercial Services Ltd","Chemical/Products Tanker",1
+"513","Wallenius Wilhelmsen Logistics","Vehicles Carrier",29
+"514","Wan Hai Lines Ltd","Container Ship (Fully Cellular)",1
+"515","Westar Marine Services","Tug",1
+"516","Western Towboat Co","Tug",2
+"517","Wilhelmsen Ship Mgmt Sdn Bhd","Bulk Carrier",1
+"518","Wilmar International Ltd","Bulk Carrier",1
+"519","WIND BV","General Cargo Ship",1
+"520","Wisdom Marine Lines SA","Bulk Carrier",1
+"521","Wisdom Marine Lines SA","General Cargo Ship",1
+"522","Wisdom Marine Lines SA","General Cargo Ship (with Ro-Ro facility)",1
+"523","Womar Stainless Pool","Chemical/Products Tanker",1
+"524","Woods Hole Oceanographic","Research Survey Vessel",1
+"525","World Tankers UK Ltd","Chemical/Products Tanker",1
+"526","Ya-Sa Gemi Isletmeciligi","Bulk Carrier",1
+"527","Yang Ming Marine Transport","Container Ship (Fully Cellular)",20
+"528","YCO SAM","Yacht",1
+"529","Zim Integrated Shipping Servs","Container Ship (Fully Cellular)",1
+"530","Zurich AG","Bulk Carrier",1

@@ -118,7 +118,6 @@ category_differnces <- reporting_differences %>%
 
   
 
-
 ```
 
 
@@ -132,5 +131,36 @@ interest <- ihs_type_category %>%
 
 ```
 
+# How many ship types does each operators have and how many of each?
+```{r}
+#467 operators total
+#530 operators = 63 operators that have more than one ship type
 
+# amount of each ship type for each operator
+operators_shiptypes <- stats_ihs %>%
+  group_by(operator) %>% 
+  count(ship_type_ihs)
+
+```
+
+```{r}
+
+#operator and how many ship types they own
+distinct_ships <- stats_ihs %>%
+  select(operator,ship_type_ihs,`total distance (nautcal miles)`) %>% 
+  group_by(operator) %>% 
+  summarise(types = n_distinct(ship_type_ihs))
+
+# total amount of nautical miles travelled by each operator
+                               
+ distinct_ships_2 <- stats_ihs %>%
+  select(operator, `total distance (nautcal miles)`) %>% 
+  group_by(operator) %>% 
+  summarize(total_trav = sum(`total distance (nautcal miles)`))
+ 
+ ## combine by operator so we can see how many ship types and distance.
+
+operators_2 <- full_join(distinct_ships,distinct_ships_2)
+                                                     
+```
 

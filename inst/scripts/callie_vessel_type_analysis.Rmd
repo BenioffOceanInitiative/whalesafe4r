@@ -160,7 +160,224 @@ distinct_ships <- stats_ihs %>%
  
  ## combine by operator so we can see how many ship types and distance.
 
-operators_2 <- full_join(distinct_ships,distinct_ships_2)
-                                                     
+operators_shiptype_distance <- full_join(distinct_ships,distinct_ships_2)
+
+#write to csvs
+
+write.csv(operators_shiptype_distance, "operator_shiptype_distance.csv")
+
+write.csv(operators_shiptypes, "operator_type_quantity.csv")
+
 ```
 
+#Looking at Big Query Data
+```{r, fig.width= 40, fig.height= 20}
+big_query <- read_csv("mmsi_cooperation_stats.csv")
+
+#Quantity of Each letter grade and ship type 
+
+grades_BQ <- big_query %>% 
+  group_by(grade) %>% 
+ count(grade)
+ 
+shiptype_bq <- big_query %>% 
+  group_by(grade) %>% 
+  count(shiptype)
+
+ #Distrubution of all letter grades by vessel type (how many of each vessel type is getting each letter grade)
+letter_plot_bq <- ggplot(shiptype_bq, aes(fill= shiptype, y= n, x=grade)) + 
+    geom_bar(position="stack", stat="identity")
+
+letter_plot_bq
+
+
+
+  
+```
+
+```{r}
+shiptype_category_BQ <- big_query %>%
+  mutate(
+    category = case_when(
+      shiptype %in% c("Tug","Articulated Pusher Tug","Pusher Tug","Anchor Handling Tug Supply") ~ "Tug",
+      shiptype %in% c("Bulk Carrier","Vehicles Carrier","Wood Chips Carrier","Heavy Load Carrier","Bulk Carrier, Self-discharging") ~ "Carrier",
+      shiptype%in% c("Crude Oil Tanker","Chemical/Products Tanker", "Crude/Oil Products Tanker", "Products Tanker", "Replenishment Tanker","LPG Tanker","LNG Tanker","Chemical Tanker") ~ "Tanker",
+      shiptype %in% c("General Cargo Ship","Replenishment Dry Cargo Vessel","Open Hatch Cargo Ship","Logistics Vessel (Naval Ro-Ro Cargo)","General Cargo Ship (with Ro-Ro facility)","Refrigerated Cargo Ship", "Ro-Ro Cargo Ship" ) ~ "Cargo",
+      shiptype%in%c("Research Survey Vessel","Fishery Research Vessel") ~"Research",
+      shiptype%in%c( "Yacht","Yacht (Sailing)") ~"Yacht",
+      shiptype%in%c( "Passenger/Cruise","Passenger Ship") ~"Passenger",
+      shiptype%in%c("Landing Craft","Frigate","Work/Maintenance Pontoon,non propelled","Icebreaker","Crew/Supply Vessel","Drilling Ship","Pollution Control Vessel","Cable Layer", "Hopper,Motor","Salvage Ship","Cable Repair Ship","Training Ship","Utility Vessel","Trailing Suction Hopper Dredger") ~ "Other",
+      shiptype%in%c("Platform Supply Ship") ~"Platform Supply Ship",
+      shiptype%in%c("Container Ship (Fully Cellular)","Container Ship (Fully Cellular/Ro-Ro Facility)") ~"Container Ship",
+      shiptype%in%c("Fishing Vessel") ~ "Fishing Vessel"))
+
+
+
+# Count Grades Per Category
+category_quantity_bq <- shiptype_category_BQ %>% 
+  group_by(grade) %>% 
+  count(category)
+
+# Now Plot For Categories
+
+letter_plot_category_bq <-ggplot(category_quantity_bq, aes(fill= category, y= n, x=grade)) + 
+    geom_bar(position="stack", stat="identity")
+
+letter_plot_category_bq
+
+   
+```
+
+```{r}
+# How many ship types does each operators have and how many of each?
+
+#498 operators total
+#573 operators = 75 ship types distributed between operators
+
+# amount of each ship type for each operator
+operators_shiptypes_bq <- big_query %>%
+  group_by(operator) %>% 
+  count(shiptype)
+
+#operator and how many ship types they own
+distinct_ships_bq <- big_query %>%
+  select(operator,shiptype) %>% 
+  group_by(operator) %>% 
+  summarise(types = n_distinct(shiptype))
+
+operators_multiple_shiptype <- distinct_ships_bq %>% 
+  arrange(-types) %>% 
+  head(57)
+#57 operators have more than one ship type
+
+# get a list of each operator, how many each type the operator has
+multiple_types <- full_join(operators_multiple_shiptype,operators_shiptypes_bq) %>% head(132)
+
+# total amount of nautical miles travelled by each operator
+                               
+ bq_travel<- big_query %>%
+  select(operator, total_distance_km) %>% 
+  group_by(operator) %>% 
+  summarize(total_trav = sum(total_distance_km))
+ 
+  bq_travel_2<- big_query %>%
+  select(operator, total_distance_km_under_10) %>% 
+  group_by(operator) %>% 
+  summarize(total_under10 = sum(total_distance_km_under_10))
+  
+  #combine speed, distance, operator, ship type??
+
+
+
+```
+
+# Speed
+```{r}
+speed_operator <- big_query %>%
+  select(operator, shiptype, avg_speed_knots) %>% 
+  group_by(operator) %>% 
+  summarize(speed_oper = mean(avg_speed_knots))
+  
+```
+
+#Speed Bins- Sum the amount of nautical miles in speed bracket vs Total amount of miles travelled. Then do it by Container Ship, Cargo,Carrier, Tanker
+```{r}
+
+#2017-2019
+under10 <- sum(big_query$total_distance_km_under_10)
+bet10_12 <- sum(big_query$total_distance_km_btwn_10_12)
+bet12_15 <- sum(big_query$total_distance_km_btwn_12_15)
+over15 <- sum(big_query$total_distance_km_over_15)
+total_km <- sum(big_query$total_distance_km)
+sums <- sum(under10,bet10_12,bet12_15,over15)
+difference <- total_km - sums #7122.4
+
+per_10 <- under10/total_km*100
+per_10_12 <- bet10_12/total_km*100
+per12_15 <- bet12_15/total_km*100
+per_over15 <- over15/total_km*100
+
+total_per <-per_10 + per_10_12 + per12_15 + per_over15 #99.6
+
+speed_bins <- matrix(c(under10,bet10_12,bet12_15,over15,total_km,per_10,per_10_12,per12_15,per_over15,total_per),ncol=5,byrow=TRUE) 
+rownames(speed_bins) <- c("Total km","Percentage")
+colnames(speed_bins) <- c("<10","10-12","12-15","over 15","Total")
+
+# Look into interest of Containers, Cargo, Carrier Tanker for 2019
+
+container <- shiptype_category_BQ %>% 
+  filter(category == "Container Ship") %>% 
+  filter(year == "2019")
+
+carrier <- shiptype_category_BQ %>% 
+filter(category == "Carrier") %>% 
+  filter(year == "2019")
+
+cargo <- shiptype_category_BQ %>% 
+  filter(category == "Cargo") %>% 
+  filter(year == "2019")
+
+tanker <- shiptype_category_BQ %>% 
+  filter(category == "Tanker") %>% 
+  filter(year == "2019")
+
+container_distance<- sum(container$total_distance_km_under_10)
+container_total <- sum(container$total_distance_km)
+container_compliance_2019 <-container_distance/container_total*100
+
+carrier_distance <- sum(carrier$total_distance_km_under_10)
+carrier_total <- sum(carrier$total_distance_km)
+carrier_compliance_2019 <-carrier_distance/carrier_total*100
+
+
+cargo_distance <- sum(cargo$total_distance_km_under_10)
+cargo_total <- sum(cargo$total_distance_km)
+cargo_compliance_2019 <- cargo_distance/cargo_total*100
+
+
+tanker_distance <- sum(tanker$total_distance_km_under_10)
+tanker_total <- sum(tanker$total_distance_km)
+tanker_compliance_2019 <- tanker_distance/tanker_total*100
+
+
+category_2019 <- matrix(c(container_total,carrier_total,cargo_total,tanker_total,container_compliance_2019,carrier_compliance_2019,cargo_compliance_2019,tanker_compliance_2019),ncol=4,byrow=TRUE) 
+rownames(category_2019) <- c("Total km Travelled in VSR","Percentage of Compliance")
+colnames(category_2019) <- c("Container","Carrier","Cargo","Tanker")
+
+
+```
+
+
+#2019, 2018, and 2017 VSR  Compliance
+```{r}
+
+compliance_2019 <- big_query %>% 
+  filter(year == "2019")
+
+sum(compliance_2019$total_distance_km_under_10)
+sum(compliance_2019$total_distance_km)
+
+484559.6/1148232
+#42.2%
+  
+# 2018
+compliance_2018 <- big_query%>% 
+  filter(year == "2018")
+
+sum(compliance_2018$total_distance_km_under_10)
+sum(compliance_2018$total_distance_km)
+100375.2/433805.8
+#23.1%
+
+#2017
+compliance_2017 <- big_query %>% 
+  filter(year == "2017")
+
+sum(compliance_2017$total_distance_km_under_10)
+sum(compliance_2017$total_distance_km)
+52084.3/248650.6
+#20.9%
+
+```
+
+  

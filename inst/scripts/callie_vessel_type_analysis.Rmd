@@ -380,4 +380,114 @@ sum(compliance_2017$total_distance_km)
 
 ```
 
+# OPERATORS AND DISTANCE IN 2019
+```{r}
+operators_distance_2019 <- compliance_2019 %>% 
+  group_by(operator) %>% 
+  summarize(total_km_2019 = sum(total_distance_km)) %>% 
+  arrange(-total_km_2019)
+
+
+# look at all operators 2017, 2018, 2019
+operator_distance_2017_2019 <- big_query %>% 
+  group_by(operator) %>% 
+  summarize(total_km_trav = sum(total_distance_km)) %>% 
+  arrange(-total_km_trav)
+
+# individual ship types to get categories
+big_query_ship_types <- unique(big_query$shiptype)
+big_query_ship_types <- data.frame(big_query_ship_types)
+write.csv(big_query_ship_types, "bigquery_shiptypes.csv")
+
+
+```
   
+#Compare NOAA VSR Stats to Big Query
+```{r}
+#read in NOAA stats
+
+NOAA_2019 <- read.csv("Subset2019VSRdata_cinms.csv") %>% 
+  mutate(cooperation = 100 - pdgt_10) %>% 
+mutate(percent_coop = cooperation/100) %>% 
+  mutate(miles_cooperation = dist_nm * percent_coop)
+
+# Big query is in km so put into NM-divide the length value by 1.852
+
+bq_2019 <- compliance_2019 %>% 
+  mutate(total_nm = total_distance_km/1.852)
+
+#Unique MMSIs
+#BQ - 987
+unique_bq <- unique(bq_2019$mmsi)
+unique_bq <- data.frame(unique_bq) %>% 
+  mutate(mmsi = unique_bq)
+#NOAA - 2789
+unique_mmsi_NOAA <- unique(NOAA_2019$mmsi)
+unique_mmsi_NOAA <- data.frame(unique_mmsi) %>% 
+  mutate(mmsi = unique_mmsi_NOAA)
+
+#ship names and MMSI numbers
+
+ship_names <- NOAA_2019 %>% 
+  select(mmsi,name)
+
+#group by mmsi and look at total nm travelled
+
+mmsi_bq <- bq_2019 %>% 
+  group_by(mmsi) %>% 
+  summarize(total_nm_2019_bq = sum(total_nm), compliance_bq = total_distance_km_under_10/total_distance_km  * 100)
+
+mmsi_NOAA <- NOAA_2019 %>% 
+  group_by(mmsi) %>% 
+  summarize(total_nm_2019_noaa = sum(dist_nm), compliance_noaa = sum((miles_cooperation)/sum(total_nm_2019_noaa)) * 100)
+
+# Merge DataFrames to Compare
+bq_noaa_comparison <- merge(mmsi_bq,mmsi_NOAA, by = "mmsi")
+  
+#get ship names
+comparison <- merge(bq_noaa_comparison,ship_names,by = "mmsi", all.x = FALSE) %>% 
+  unique() %>% 
+  mutate(difference_nm = abs(total_nm_2019_bq - total_nm_2019_noaa)) %>% 
+  mutate(difference_in_compliance = abs(compliance_bq - compliance_noaa)) 
+  
+reorder <- comparison[c("name", "mmsi", "total_nm_2019_bq","total_nm_2019_noaa","difference_nm","compliance_bq","compliance_noaa","difference_in_compliance")]
+
+reorder$total_nm_2019_bq <- round(reorder$total_nm_2019_bq ,digit=2)
+reorder$total_nm_2019_noaa <- round(reorder$total_nm_2019_noaa ,digit=2)
+reorder$difference_nm <- round(reorder$difference_nm ,digit=2)
+reorder$compliance_bq <- round(reorder$compliance_bq ,digit=2)
+reorder$compliance_noaa <- round(reorder$compliance_noaa ,digit=2)
+reorder$difference_in_compliance <- round(reorder$difference_in_compliance ,digit=2)
+
+write.csv("reorder", "bq_noaa_VSR_comparison_2019.csv")
+
+# What ships does NOAA have that BQ doesnt  and ones BQ has that NOAA doesnt
+matches <- semi_join(unique_bq,unique_mmsi_NOAA, by = "mmsi")
+
+mmsi_bq_missing_from_NOAA <- anti_join(unique_bq,unique_mmsi_NOAA, by = "mmsi") #missing from NOAA
+
+mmsi_NOAA_missing_from_bq <- anti_join(unique_mmsi_NOAA, unique_bq , by = "mmsi") #missing from BQ
+
+
+
+
+```
+
+
+```{r}
+
+quality_check <- NOAA_2019 %>% 
+  filter(mmsi == "3669999")
+
+sum(quality_check$dist_nm) # 1110.4
+sum(quality_check$miles_cooperation) #611.3367
+
+611.3376/1110.4
+
+0.5505562
+ 
+
+
+
+```
+

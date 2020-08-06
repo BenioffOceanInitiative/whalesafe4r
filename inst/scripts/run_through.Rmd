@@ -76,7 +76,7 @@ con <- db_connect()
 ```{r, last read URL}
 
 #Query database to find the 'last read' url from the ais_data table
-last_read_url <- dbGetQuery(con, "SELECT MAX(url) AS last_read_url FROM ais_data;") %>% .$last_read_url
+last_read_url <- dbGetQuery(con, "SELECT url AS last_read_url FROM ais_data WHERE datetime = (SELECT MAX(datetime) FROM ais_data) LIMIT 1;") %>% .$last_read_url
 
 last_read_url
 

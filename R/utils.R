@@ -7,14 +7,14 @@
 #'
 #' @examples
 #' u <- 'https://ais.sbarc.org/logs_delimited/2019/190202/AIS_SBARC_190202-04.txt'
-#' > is.url_only(x = u)
+ # is.url_only(x = u)
 #' [1] TRUE
 #'
 #' raw <- xml2::read_html(u)
-#' > is.url_only(x = raw)
+#' is.url_only(x = raw)
 #' [1] FALSE
 #'
-#' > is.url_only(xml_find_all(raw,".//a[1]"))
+#' is.url_only(xml_find_all(raw,".//a[1]"))
 #' [1] FALSE
 #'
 #' @export
@@ -128,7 +128,8 @@ url.hostname <- function(url = NULL, ...){
 #' Needed for walking back up the tree
 #'
 #' @examples
-#'  u <- "https://ais.sbarc.org/logs_delimited/2019/190202/AIS_SBARC_190202-04.txt"
+#  u <- "https://ais.sbarc.org/logs_delimited/2019/190202/AIS_SBARC_190202-04.txt"
+# r <- url.drop_basename(u)
 #'
 #' @export
 url.drop_basename <- function(url = NULL, ...){

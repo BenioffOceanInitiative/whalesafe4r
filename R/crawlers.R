@@ -29,7 +29,8 @@ whale.dive <- function(u){
 #'
 #'
 #' @examples
-#' > .next_xpath("https://ais.sbarc.org/logs_delimited/2018/181212/")
+.next_xpath("https://ais.sbarc.org/logs_delimited/2018/181212/")
+.next_xpath("https://ais.sbarc.org/logs_delimited/2020/200107/AIS_SBARC_200107-11.txt")
 #'
 #' [1] ".//a[contains(.,'181212') or contains(@href, '181212')]//following-sibling::a[@href]"
 .next_xpath <- function(pat = NULL, ...){
@@ -48,7 +49,7 @@ whale.dive <- function(u){
 #'
 #' .find_link_sibs("https://ais.sbarc.org/logs_delimited/2018/181212/")
 #'
-#' > .find_link_sibs(("https://ais.sbarc.org/logs_delimited/2018/181231/")) # Returns NULL
+ # .find_link_sibs(("https://ais.sbarc.org/logs_delimited/2018/181231/")) # Returns NULL
 #'
 #'
 .find_link_sibs <- function(start_url = NULL){
@@ -94,7 +95,7 @@ whale.dive <- function(u){
 #' @note THIS REQUIRES THE START URL TO BE A TXT FILE PATH
 #'
 #' @examples
-#' links <- get_ais_urls("https://ais.sbarc.org/logs_delimited/2019/191008/AIS_SBARC_191008-12.txt")
+# links <- get_ais_urls("https://ais.sbarc.org/logs_delimited/2020/200107/AIS_SBARC_200107-11.txt")
 #'
 #'
 
